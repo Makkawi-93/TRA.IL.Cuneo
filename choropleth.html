@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-it="Cuneo — Analisi Coropletica" data-en="Cuneo — Choropleth Analysis">Cuneo — Choropleth Analysis</title>
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="js/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="data/Demografica_4.js"></script>
+    <script src="data/Sedi_Attive_2025_A_Agricoltura_3.js"></script>
+    <script src="data/Sedi_Attive_2025_C_manifatturiere_1.js"></script>
+    <script src="data/Sedi_Attive_2025_H_Trasporto_2.js"></script>
+    <script src="data/Tracciati_opere_CN__strada_ferrovia_rev_5.js"></script>
+    <script src="data/Tracciati_opere_CN__punti_7.js"></script>
+    <style>
+        * { box-sizing:border-box; margin:0; padding:0; }
+        .leaflet-interactive:focus { outline: none !important; }
+        .leaflet-pane svg rect, .leaflet-overlay-pane svg rect { stroke:none !important; fill:none !important; display:none !important; }
+        html,body { width:100%; height:100%; font-family:'DM Sans',sans-serif; background:#f4f6fa; display:flex; flex-direction:column; }
+        #navbar { height:72px; min-height:72px; background:#d9efe4; display:flex; align-items:center; padding:0 30px; border-bottom:1px solid rgba(17,74,139,0.16); box-shadow:0 16px 40px rgba(17,74,139,0.08); z-index:2000; flex-shrink:0; gap:20px; }
+        #navbar-logo { height:160px; max-width:290px; object-fit:contain; margin-right:32px; }
+        #back-btn { padding:7px 16px; background:#f0f2f8; border:1px solid #d0d8e8; border-radius:6px; color:#1e2a4a; font-size:11px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; text-transform:uppercase; letter-spacing:.5px; }
+        #back-btn:hover { background:#e4e8f0; }
+        .nav-navbar-lang { display:flex; gap:6px; margin-left:auto; }
+        .nav-lang-btn { padding:6px 14px; border:1px solid rgba(17,74,139,0.32); border-radius:10px; cursor:pointer; background:transparent; color:#114a8b; font-size:11px; font-weight:700; transition:all .2s; font-family:'DM Sans',sans-serif; }
+        .nav-lang-btn:hover { background:#eef6ff; }
+        .nav-lang-btn.active { background:#114a8b; color:#ffffff; border-color:#114a8b; }
+        #app { display:flex; flex:1; overflow:hidden; }
+        #sidebar { width:280px; min-width:280px; height:100%; background:#d9efe4; border-right:1px solid rgba(17,74,139,0.16); display:flex; flex-direction:column; overflow:hidden; z-index:1000; }
+        #sidebar-header { padding:14px 16px 10px; background:#d9efe4; border-bottom:1px solid rgba(17,74,139,0.16); flex-shrink:0; }
+        #sidebar-header h1 { font-size:12px; font-weight:700; color:#114a8b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+        #sidebar-header p { font-size:10px; color:#1e2a4a; line-height:1.5; margin-bottom:8px; }
+        #sidebar-desc { font-size:12px; color:#1e2a4a; line-height:1.6; margin-bottom:14px; background:#ffffff; border:1px solid rgba(17,74,139,0.14); border-radius:18px; padding:16px; box-shadow:0 12px 30px rgba(17,74,139,0.08); }
+        #sidebar-desc .desc-title { font-size:12px; font-weight:700; color:#114a8b; margin-bottom:8px; }
+        #sidebar-desc ul { margin:10px 0 0 0; padding-left:18px; list-style:none; }
+        #sidebar-desc li { margin-bottom:8px; font-size:11px; line-height:1.5; position:relative; padding-left:20px; }
+        #sidebar-desc li::before { content:'•'; position:absolute; left:0; top:3px; color:#1e7d5a; font-size:16px; line-height:1; }
+        #sidebar-desc strong { color:#114a8b; }
+        #sidebar-body { flex:1; overflow-y:auto; }
+        #sidebar-body::-webkit-scrollbar { width:4px; }
+        #sidebar-body::-webkit-scrollbar-thumb { background:#d0d8e8; border-radius:2px; }
+        .acc-item { border-bottom:1px solid #e4e8f0; }
+        .acc-header { padding:11px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#fff; user-select:none; transition:background .15s; }
+        .acc-header:hover { background:#f8f9fc; }
+        .acc-title { font-size:11px; font-weight:700; color:#1e2a4a; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.5px; }
+        .acc-arrow { font-size:10px; color:#8a9ab8; transition:transform .25s; flex-shrink:0; }
+        .acc-arrow.open { transform:rotate(90deg); }
+        .acc-body { background:#f8f9fc; padding:8px; display:none; flex-direction:column; gap:5px; }
+        .acc-body.open { display:flex; }
+        .layer-btn { padding:9px 12px; border-radius:7px; border:1px solid #e4e8f0; background:#fff; cursor:pointer; font-size:11px; color:#3a4a6a; font-weight:600; font-family:'DM Sans',sans-serif; text-align:left; width:100%; display:flex; align-items:center; gap:8px; transition:all .15s; }
+        .layer-btn:hover { background:#f0f2f8; border-color:#a0b0cc; }
+        .layer-btn.active { background:#1e2a4a; color:#fff; border-color:#1e2a4a; }
+        .layer-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); }
+        #map { flex:1; height:100%; position:relative; }
+        #map-legend { position:absolute; bottom:24px; right:16px; z-index:1000; background:rgba(255,255,255,0.96); border:1px solid #e4e8f0; border-radius:9px; padding:11px 14px; box-shadow:0 2px 12px rgba(0,0,0,0.12); min-width:160px; display:none; }
+        #legend-title { font-size:9px; font-weight:700; color:#8a9ab8; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+        .legend-row { display:flex; align-items:center; gap:7px; font-size:10px; color:#3a4a6a; margin-bottom:5px; }
+        .legend-row:last-child { margin-bottom:0; }
+        .legend-color { width:28px; height:13px; border-radius:3px; flex-shrink:0; border:1px solid rgba(0,0,0,0.1); }
+        #map-info { position:absolute; top:14px; right:16px; z-index:1000; background:rgba(255,255,255,0.96); border:1px solid #e4e8f0; border-radius:9px; padding:10px 14px; box-shadow:0 2px 8px rgba(0,0,0,0.1); min-width:160px; display:none; }
+        #info-name { font-size:12px; font-weight:700; color:#1e2a4a; margin-bottom:3px; }
+        #info-val  { font-size:20px; font-weight:700; color:#1e2a4a; }
+        #info-lbl  { font-size:10px; color:#8a9ab8; margin-top:2px; }
+        #map-hint { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:500; text-align:center; color:#8a9ab8; pointer-events:none; }
+        #map-hint .hint-icon { font-size:36px; margin-bottom:10px; }
+        #map-hint .hint-text { font-size:13px; font-weight:600; }
+        .endpoint-tooltip {
+            background: #ffffff;
+            border: 2px solid #114a8b;
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 6px 20px rgba(17,74,139,0.18);
+            font-size: 14px;
+            font-weight: 700;
+            color: #114a8b;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .endpoint-tooltip::before { display: none; }
+    </style>
+</head>
+<body>
+<div id="navbar">
+    <img id="navbar-logo" src="images/logo-TRA.I.L_trasparente.png" alt="TRA.I.L logo">
+    <button id="back-btn" onclick="window.location.href='index.html'">&#8592; <span data-it="Torna a WebGIS" data-en="Back to WebGIS">Back to WebGIS</span></button>
+    <div class="nav-navbar-lang">
+        <button class="nav-lang-btn" onclick="setLang('it')">IT</button>
+        <button class="nav-lang-btn active" onclick="setLang('en')">EN</button>
+    </div>
+</div>
+<div id="app">
+    <div id="sidebar">
+        <div id="sidebar-header">
+            <h1 data-it="Filtro Livelli" data-en="Layer Filter">Layer Filter</h1>
+            <p data-it="Clicca una sezione per espandere" data-en="Click a section to expand">Click a section to expand</p>
+            <div id="sidebar-desc">
+                <div class="desc-title" data-it="Cosa mostra questa pagina" data-en="What this page shows">What this page shows</div>
+                <p data-it="Usa i controlli per visualizzare un solo layer alla volta sulla mappa. Ogni layer colora i comuni e aggiorna la legenda." data-en="Use the controls below to display one layer at a time on the map. Each layer paints municipalities with color ranges and legend values.">Use the controls below to display one layer at a time on the map. Each layer paints municipalities with color ranges and legend values.</p>
+                <ul>
+                    <li><strong data-it="Demografia" data-en="Demografia">Demografia</strong> — <span data-it="mostra la distribuzione della popolazione per comune." data-en="shows population distribution across municipalities.">shows population distribution across municipalities.</span></li>
+                    <li><strong data-it="Sedi Attive 2025" data-en="Sedi Attive 2025">Sedi Attive 2025</strong> — <span data-it="visualizza le sedi attive per settore." data-en="displays active business locations by sector.">displays active business locations by sector.</span></li>
+                </ul>
+                <p data-it="Dopo aver selezionato un layer, passa il mouse su un comune per vedere il valore esatto e la categoria della legenda." data-en="After selecting a layer, hover over a municipality to reveal the exact value and legend category.">After selecting a layer, hover over a municipality to reveal the exact value and legend category.</p>
+            </div>
+        </div>
+        <div id="sidebar-body">
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAcc('demo')">
+                    <div class="acc-title" data-it="&#128101; Demografia" data-en="&#128101; Demographics">&#128101; Demografia</div>
+                    <div class="acc-arrow" id="arr-demo">&#9654;</div>
+                </div>
+                <div class="acc-body" id="body-demo">
+                    <button class="layer-btn" id="btn-Demografica_4" onclick="activateLayer('Demografica_4')">
+                        <span class="layer-dot" style="background:#3d9278;"></span>Demografica
+                    </button>
+                </div>
+            </div>
+            <div class="acc-item">
+                <div class="acc-header" onclick="toggleAcc('sedi')">
+                    <div class="acc-title" data-it="&#127981; Sedi Attive 2025" data-en="&#127981; Active Businesses 2025">&#127981; Sedi Attive 2025</div>
+                    <div class="acc-arrow" id="arr-sedi">&#9654;</div>
+                </div>
+                <div class="acc-body" id="body-sedi">
+                    <button class="layer-btn" id="btn-Sedi_Attive_2025_A_Agricoltura_3" onclick="activateLayer('Sedi_Attive_2025_A_Agricoltura_3')">
+                        <span class="layer-dot" style="background:#725435;"></span>Sedi_Attive_2025_A_Agricoltura
+                    </button>
+                    <button class="layer-btn" id="btn-Sedi_Attive_2025_C_manifatturiere_1" onclick="activateLayer('Sedi_Attive_2025_C_manifatturiere_1')">
+                        <span class="layer-dot" style="background:#3853e1;"></span>Sedi_Attive_2025_C_manifatturiere
+                    </button>
+                    <button class="layer-btn" id="btn-Sedi_Attive_2025_H_Trasporto_2" onclick="activateLayer('Sedi_Attive_2025_H_Trasporto_2')">
+                        <span class="layer-dot" style="background:#425f47;"></span>Sedi_Attive_2025_H_Trasporto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="map">
+        <div id="map-hint">
+            <div class="hint-icon">&#128506;</div>
+            <div class="hint-text" data-it="Clicca un layer nel filtro per visualizzarlo sulla mappa" data-en="Click a layer in the filter to display it on the map">Click a layer in the filter<br>to display it on the map</div>
+        </div>
+        <div id="map-legend">
+            <div id="legend-title"></div>
+            <div id="legend-items"></div>
+        </div>
+        <div id="map-info">
+            <div id="info-name"></div>
+            <div id="info-val"></div>
+            <div id="info-lbl"></div>
+        </div>
+    </div>
+</div>
+<script>
+var map = L.map('map', { zoomControl:true, maxZoom:18, minZoom:6 })
+    .fitBounds([[44.0, 6.8], [44.8, 8.5]]);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    opacity: 0.7,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    minZoom: 1,
+    maxZoom: 19,
+    maxNativeZoom: 19
+}).addTo(map);
+
+/* ── Cuneo Province Border ── */
+var layer_CuneoBorder = L.geoJson(null, {
+    style: function() {
+        return { color:'rgba(20,20,20,1.0)', weight:2.5, fill:false, interactive:false };
+    },
+    interactive: false
+});
+
+(function() {
+    try {
+        var workerSrc = [
+            'importScripts("https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js");',
+            'self.onmessage = function(e) {',
+            '  var polys = e.data;',
+            '  while (polys.length > 1) {',
+            '    var next = [];',
+            '    for (var i = 0; i < polys.length; i += 2) {',
+            '      if (i + 1 >= polys.length) { next.push(polys[i]); break; }',
+            '      try { var u = turf.union(polys[i], polys[i+1]); next.push(u || polys[i]); }',
+            '      catch(ex) { next.push(polys[i]); }',
+            '    }',
+            '    polys = next;',
+            '  }',
+            '  self.postMessage(polys[0]);',
+            '};'
+        ].join('\n');
+        var blob = new Blob([workerSrc], {type:'application/javascript'});
+        var blobUrl = URL.createObjectURL(blob);
+        var worker = new Worker(blobUrl);
+        worker.onmessage = function(ev) {
+            var result = ev.data;
+            if (result) {
+                layer_CuneoBorder.clearLayers();
+                layer_CuneoBorder.addData({type:'FeatureCollection', features:[result]});
+            }
+            worker.terminate();
+            URL.revokeObjectURL(blobUrl);
+        };
+        worker.onerror = function() { worker.terminate(); URL.revokeObjectURL(blobUrl); };
+        var feats = json_Demografica_4.features.map(function(f) {
+            return {type:'Feature', geometry: f.geometry, properties:{}};
+        });
+        worker.postMessage(feats);
+    } catch(e) {}
+})();
+
+// EXACT classes and colors from QGIS legend
+var layerConfig = {
+    'Demografica_4': {
+        data:   json_Demografica_4,
+        field:  'Pop_ 2023',
+        label:  'Demografica — Pop 2023', label_it: 'Demografica — Pop 2023', label_en: 'Demographics — Pop 2023',
+        breaks: [42, 1611, 4691, 12528, 31229, 55844],
+        colors: ['#d1f0e3','#a1dfc6','#6fbba0','#3d9278','#1f6452'],
+        nodata: '#f5f5f5'
+    },
+    'Sedi_Attive_2025_A_Agricoltura_3': {
+        data:   json_Sedi_Attive_2025_A_Agricoltura_3,
+        field:  'A_Grand Totale',
+        label:  'Sedi_Attive_2025_A_Agricoltura', label_it: 'Sedi_Attive_2025_A_Agricoltura', label_en: 'Active_2025_A_Agriculture',
+        breaks: [1, 42, 101, 194, 364, 602],
+        colors: ['#f8eed8','#e1d2b0','#c7b18a','#a2815c','#725435'],
+        nodata: '#f5f5f5'
+    },
+    'Sedi_Attive_2025_C_manifatturiere_1': {
+        data:   json_Sedi_Attive_2025_C_manifatturiere_1,
+        field:  'C_Grand Totale',
+        label:  'Sedi_Attive_2025_C_manifatturiere', label_it: 'Sedi_Attive_2025_C_manifatturiere', label_en: 'Active_2025_C_Manufacturing',
+        breaks: [0, 19, 55, 126, 245, 341],
+        colors: ['#e4edff','#bdd2ff','#8fa8ff','#5f7cff','#3853e1'],
+        nodata: '#f5f5f5'
+    },
+    'Sedi_Attive_2025_H_Trasporto_2': {
+        data:   json_Sedi_Attive_2025_H_Trasporto_2,
+        field:  'H_Grand Totale',
+        label:  'Sedi_Attive_2025_H_Trasporto', label_it: 'Sedi_Attive_2025_H_Trasporto', label_en: 'Active_2025_H_Transport',
+        breaks: [0, 3, 8, 22, 56, 92],
+        colors: ['#e6f2ea','#c8dfc7','#97b999','#6c8f6a','#425f47'],
+        nodata: '#f5f5f5'
+    }
+};
+
+/* ── Strategic Infrastructure layers ── */
+var infraLines = L.geoJson(json_Tracciati_opere_CN__strada_ferrovia_rev_5, {
+    style: function(feature) {
+        var s = (feature.properties.Tracciati_Settore || feature.properties.Settore || '');
+        if (s === 'Ferrovia') return { color:'#000000', weight:2, dashArray:'6 4', opacity:0.9 };
+        return { color:'#2d8a2d', weight:2, opacity:0.9 };
+    },
+    onEachFeature: function(feature, layer) {
+        var p = feature.properties;
+        var nome = p.Tracciati_Nome || p.Nome || '';
+        var settore = p.Tracciati_Settore || p.Settore || '';
+        if (nome) layer.bindTooltip('<strong>' + nome + '</strong><br><em>' + settore + '</em>', { sticky:true });
+    }
+});
+
+var infraPoints = L.geoJson(json_Tracciati_opere_CN__punti_7, {
+    pointToLayer: function(feature, latlng) {
+        return L.circleMarker(latlng, { radius:9, color:'rgba(35,35,35,1.0)', fillColor:'rgba(145,82,45,1.0)', fillOpacity:1, weight:1 });
+    },
+    onEachFeature: function(feature, layer) {
+        var p = feature.properties;
+        var nome = p.Punti_Cuneo_Nome || p.Nome || '';
+        var settore = p.Punti_Cuneo_Settore || p.Settore || '';
+        if (nome) layer.bindTooltip('<strong>' + nome + '</strong><br><em>' + settore + '</em>', { sticky:true });
+        layer.on({
+            mouseover: function(e) { e.target.setStyle({radius:11}); },
+            mouseout:  function(e) { e.target.setStyle({radius:9}); }
+        });
+    }
+});
+
+var infraGroup = L.layerGroup([infraLines, infraPoints]);
+var infraAdded = false;
+var layer_InfraEndpoints = null;
+
+function getLineEndpoints(geometry) {
+    if (geometry.type === 'LineString') {
+        var c = geometry.coordinates;
+        return [c[0], c[c.length - 1]];
+    }
+    if (geometry.type === 'MultiLineString') {
+        var lines = geometry.coordinates;
+        return [lines[0][0], lines[lines.length-1][lines[lines.length-1].length-1]];
+    }
+    return [];
+}
+
+function getMunicipalityName(coord) {
+    var pt = turf.point(coord);
+    var munis = json_Demografica_4.features;
+    for (var i = 0; i < munis.length; i++) {
+        try {
+            if (turf.booleanPointInPolygon(pt, munis[i])) {
+                var p = munis[i].properties;
+                return p['Nome del comune'] || p['Comune_nome'] || '';
+            }
+        } catch(e) {}
+    }
+    return '';
+}
+
+var _nominatimCache = {};
+function fetchPlaceName(lat, lon, delayMs, lang, callback) {
+    var key = lat.toFixed(5) + ',' + lon.toFixed(5) + ',' + (lang || 'en');
+    if (_nominatimCache[key] !== undefined) { callback(_nominatimCache[key]); return; }
+    setTimeout(function() {
+        fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&zoom=10', {
+            headers: { 'Accept-Language': lang || 'en' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var a = data.address || {};
+            var name = a.city || a.town || a.village || a.municipality || a.county || '';
+            _nominatimCache[key] = name;
+            callback(name);
+        })
+        .catch(function() { _nominatimCache[key] = ''; callback(''); });
+    }, delayMs);
+}
+
+function buildEndpointLayer(roadFeatures) {
+    var markers = [];
+    var nominatimIdx = 0;
+    roadFeatures.forEach(function(f) {
+        var props = f.properties;
+        var settore = props.Tracciati_Settore || props.Settore || '';
+        var color = settore === 'Ferrovia' ? '#000000' : '#2d8a2d';
+        getLineEndpoints(f.geometry).forEach(function(coord) {
+            var m = L.circleMarker([coord[1], coord[0]], {
+                radius: 6, color: '#ffffff', weight: 2,
+                fillColor: color, fillOpacity: 1
+            });
+            var muniName = getMunicipalityName(coord);
+            if (muniName) {
+                m.bindTooltip(muniName, {sticky: true, className: 'endpoint-tooltip'});
+            } else {
+                (function(marker, c, idx) {
+                    fetchPlaceName(c[1], c[0], idx * 800, currentLang, function(name) {
+                        if (name) marker.bindTooltip(name, {sticky: true, className: 'endpoint-tooltip'});
+                    });
+                })(m, coord, nominatimIdx);
+                nominatimIdx++;
+            }
+            markers.push(m);
+        });
+    });
+    return L.layerGroup(markers);
+}
+
+function showEndpoints() {
+    if (layer_InfraEndpoints && map.hasLayer(layer_InfraEndpoints)) map.removeLayer(layer_InfraEndpoints);
+    layer_InfraEndpoints = buildEndpointLayer(json_Tracciati_opere_CN__strada_ferrovia_rev_5.features);
+    map.addLayer(layer_InfraEndpoints);
+}
+
+function hideEndpoints() {
+    if (layer_InfraEndpoints && map.hasLayer(layer_InfraEndpoints)) map.removeLayer(layer_InfraEndpoints);
+    layer_InfraEndpoints = null;
+}
+
+var currentGeoLayer = null;
+var currentActiveKey = null;
+
+function getVal(props, field) {
+    var v = props[field];
+    if (v===null||v===undefined||v==='-'||v==='') return null;
+    var n = parseFloat(String(v).replace(',','.'));
+    return isNaN(n) ? null : n;
+}
+
+function getColor(val, breaks, colors, nodata) {
+    if (val===null||val===undefined) return nodata;
+    if (val < breaks[0]) return nodata;
+    for (var i=0; i<breaks.length-1; i++) {
+        if (val >= breaks[i] && val <= breaks[i+1]) return colors[i];
+    }
+    return colors[colors.length-1];
+}
+
+function fmt(v) {
+    if (v===null||v===undefined) return '–';
+    return Number(v).toLocaleString('en-US');
+}
+
+var currentLang = 'en';
+function setLang(lang) {
+    currentLang = lang;
+    document.querySelectorAll('[data-it]').forEach(function(el) {
+        var text = el.getAttribute('data-' + lang);
+        if (text !== null) el.textContent = text;
+    });
+    document.querySelectorAll('.nav-lang-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+    });
+    // Update page title
+    document.title = lang === 'it' ? 'Cuneo — Analisi Coropletica' : 'Cuneo — Choropleth Analysis';
+    localStorage.setItem('cuneo_lang', lang);
+    // Update hint text (has <br> so handle separately)
+    var hint = document.querySelector('.hint-text');
+    if (hint) hint.innerHTML = lang === 'it'
+        ? 'Clicca un layer nel filtro<br>per visualizzarlo sulla mappa'
+        : 'Click a layer in the filter<br>to display it on the map';
+    // Update active layer label in legend and info if shown
+    if (currentGeoLayer) {
+        var cfg = layerConfig[currentActiveKey];
+        if (cfg) {
+            var lbl = lang === 'it' ? cfg.label_it : cfg.label_en;
+            document.getElementById('info-lbl').textContent = lbl || cfg.label;
+            document.getElementById('legend-title').textContent = lbl || cfg.label;
+        }
+    }
+    /* Rebuild endpoint labels in new language */
+    if (layer_InfraEndpoints && map.hasLayer(layer_InfraEndpoints)) showEndpoints();
+}
+
+function toggleAcc(id) {
+    var body = document.getElementById('body-'+id);
+    var arr  = document.getElementById('arr-'+id);
+    var isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    arr.classList.toggle('open', !isOpen);
+}
+
+function deactivateAll() {
+    document.querySelectorAll('.layer-btn').forEach(function(b){ b.classList.remove('active'); });
+    if (currentGeoLayer) { map.removeLayer(currentGeoLayer); currentGeoLayer = null; }
+    if (infraAdded) { map.removeLayer(infraGroup); infraAdded = false; }
+    hideEndpoints();
+    if (map.hasLayer(layer_CuneoBorder)) map.removeLayer(layer_CuneoBorder);
+    currentActiveKey = null;
+    document.getElementById('map-hint').style.display='block';
+    document.getElementById('map-legend').style.display='none';
+    document.getElementById('map-info').style.display='none';
+}
+
+function activateLayer(key) {
+    /* clicking the already-active layer deactivates everything */
+    if (currentActiveKey === key) { deactivateAll(); return; }
+
+    document.querySelectorAll('.layer-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('btn-'+key).classList.add('active');
+    currentActiveKey = key;
+    if (currentGeoLayer) { map.removeLayer(currentGeoLayer); currentGeoLayer = null; }
+
+    var cfg = layerConfig[key];
+
+    currentGeoLayer = L.geoJson(cfg.data, {
+        style: function(feature) {
+            var val = getVal(feature.properties, cfg.field);
+            return {
+                fillColor:   getColor(val, cfg.breaks, cfg.colors, cfg.nodata),
+                fillOpacity: 0.85,
+                color:       '#fff',
+                weight:      0.25
+            };
+        },
+        onEachFeature: function(feature, layer) {
+            layer.on({
+                mouseover: function(e) {
+                    e.target.setStyle({ weight:1, color:'#1e2a4a', fillOpacity:0.95 });
+                    var p   = feature.properties;
+                    var name= p['Nome del comune']||p['Nome_comune']||'';
+                    var val = getVal(p, cfg.field);
+                    document.getElementById('map-info').style.display='block';
+                    document.getElementById('info-name').textContent=name;
+                    document.getElementById('info-val').textContent=fmt(val);
+                    document.getElementById('info-lbl').textContent=cfg.label;
+                },
+                mouseout: function(e) {
+                    currentGeoLayer.resetStyle(e.target);
+                    document.getElementById('map-info').style.display='none';
+                }
+            });
+        }
+    }).addTo(map);
+
+    /* Bring border above choropleth, then infra above border */
+    if (!map.hasLayer(layer_CuneoBorder)) layer_CuneoBorder.addTo(map);
+    layer_CuneoBorder.bringToFront();
+    infraGroup.addTo(map);
+    infraLines.bringToFront();
+    infraPoints.bringToFront();
+    infraAdded = true;
+    showEndpoints();
+
+    document.getElementById('map-hint').style.display='none';
+    buildLegend(cfg);
+}
+
+function buildLegend(cfg) {
+    document.getElementById('map-legend').style.display='block';
+    document.getElementById('legend-title').textContent=cfg.label;
+    var el=document.getElementById('legend-items');
+    el.innerHTML='';
+    var b=cfg.breaks;
+    var ranges=[
+        fmt(b[0])+' – '+fmt(b[1]),
+        fmt(b[1])+' – '+fmt(b[2]),
+        fmt(b[2])+' – '+fmt(b[3]),
+        fmt(b[3])+' – '+fmt(b[4]),
+        fmt(b[4])+' – '+fmt(b[5])
+    ];
+    cfg.colors.forEach(function(c,i){
+        el.innerHTML+='<div class="legend-row"><div class="legend-color" style="background:'+c+'"></div><span>'+ranges[i]+'</span></div>';
+    });
+}
+</script>
+</body>
+</html>

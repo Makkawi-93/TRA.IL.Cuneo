@@ -1,0 +1,2695 @@
+﻿<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/tabler-icons.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <title>WebGIS Cuneo</title>
+        <style>
+        * { box-sizing:border-box; }
+        html,body { width:100%;height:100%;padding:0;margin:0;font-family:'DM Sans',sans-serif;background:linear-gradient(180deg, #e7f7ef 0%, #d9efe4 100%);display:flex;flex-direction:column; }
+        #global-navbar { width:100%;height:72px;min-height:72px;background:#d9efe4;display:flex;align-items:center;padding:0 30px;z-index:2000;flex-shrink:0;border-bottom:1px solid rgba(17,74,139,0.16);box-shadow:0 16px 40px rgba(17,74,139,0.08); }
+        #navbar-logo { height:160px;max-width:290px;object-fit:contain;margin-right:32px; }
+        .nav-links { display:flex;align-items:center;gap:20px;flex:1; }
+        .nav-link { padding:8px 0;border:none;color:#114a8b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;cursor:pointer;background:transparent;border-bottom:2px solid transparent;transition:all .2s;font-family:'DM Sans',sans-serif;white-space:nowrap; }
+        .nav-link:hover { color:#0d3a71;border-bottom-color:#114a8b; }
+        .nav-navbar-lang { display:flex;gap:6px;margin-left:auto; }
+        .nav-lang-btn { padding:6px 14px;border:1px solid rgba(17,74,139,0.32);border-radius:10px;cursor:pointer;background:transparent;color:#114a8b;font-size:11px;font-weight:700;transition:all .2s;font-family:'DM Sans',sans-serif; }
+        .nav-lang-btn.active { background:#114a8b;color:#ffffff;border-color:#114a8b; }
+        #app-wrapper { display:flex;width:100%;flex:1;overflow:hidden; }
+        #map-container { flex:1;position:relative;height:100%; }
+        #map { width:100%;height:100%; }
+        #sidebar { width:clamp(280px,24vw,340px);max-width:340px;min-width:280px;height:100%;background:#cde8df;color:#1e2a4a;display:flex;flex-direction:column;border-left:1px solid rgba(17,74,139,0.16);overflow:hidden;position:relative;z-index:1000; }
+        #empty-state { flex:1;overflow-y:auto;padding:clamp(8px,1.4vh,18px) 12px;background:#cde8df; }
+        .right-panel-stack { display:flex;flex-direction:column;gap:clamp(8px,1.4vh,18px); }
+        .hero-card { position:relative;overflow:hidden;background:#16283e;border-radius:8px;padding:clamp(6px,1.2vh,12px) 18px;box-shadow:0 8px 24px rgba(22,40,62,0.15); }
+        .hero-card .hero-wave { position:absolute;inset:0;pointer-events:none; }
+        .hero-eyebrow { display:flex;align-items:center;gap:7px;font-size:clamp(9.5px,1.3vh,11px);font-weight:700;color:#a9d8cd;text-transform:uppercase;letter-spacing:0.22em;position:relative;z-index:1; }
+        .hero-title { margin:clamp(2px,0.6vh,6px) 0;font-size:clamp(15px,2.6vh,22px);line-height:1.15;font-family:'DM Sans',sans-serif;font-weight:700;color:#f4efe6;position:relative;z-index:1; }
+        .hero-subtitle { font-size:clamp(10px,1.5vh,13px);color:#79c4b4;line-height:1.35;position:relative;z-index:1; }
+        .panel-card { background:linear-gradient(160deg, #ffffff 0%, #e4f3ed 70%, #cde8df 100%);border:1px solid #cde8df;border-radius:8px;padding:clamp(8px,1.6vh,18px) 16px;box-shadow:0 6px 18px rgba(22,40,62,0.10); }
+        .panel-chip { display:inline-flex;align-items:center;gap:7px;padding:4px 9px;border-radius:4px;background:#cde8df;color:#114a8b;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.22em;margin-bottom:clamp(4px,0.9vh,10px); }
+        .panel-body-text { font-size:clamp(12.5px,1.9vh,16px);color:#114a8b;line-height:1.45;font-family:'DM Sans',sans-serif; }
+        .panel-body-text strong { color:#114a8b;font-weight:700; }
+        .toggle-row { display:flex;flex-wrap:wrap;gap:8px;margin-top:12px; }
+        .toggle-pill { display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid rgba(22,40,62,0.15);border-radius:4px;background:#cde8df;color:#16283e;font-size:12.5px;font-weight:600;cursor:pointer;transition:all 0.2s ease;box-shadow:0 2px 6px rgba(22,40,62,0.04); }
+        .toggle-pill .pill-dot { width:7px;height:7px;border-radius:50%;background:#16283e;display:inline-block;flex-shrink:0; }
+        .toggle-pill.is-active { background:#aed8c8;box-shadow:inset 0 0 0 1px rgba(22,40,62,0.08); }
+        .panel-card--data { background:linear-gradient(180deg, #ffffff 0%, #e4f3ed 60%, #cde8df 100%);border-radius:14px;padding:clamp(8px,1.4vh,16px) 14px clamp(10px,1.6vh,18px);display:flex;flex-direction:column;align-items:center; }
+        .data-card-title { margin:0 0 clamp(2px,0.7vh,8px) 0;font-size:11px;font-weight:700;color:#114a8b;letter-spacing:0.22em;text-transform:uppercase;text-align:center; }
+        .orbit-wrap { position:relative;width:clamp(160px,26vh,250px);height:clamp(160px,26vh,250px);margin:0 auto; }
+        .orbit-ring { position:absolute;inset:12%;border:2px dashed #d5dbe6;border-radius:50%;pointer-events:none; }
+        .orbit-center { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:22%;height:22%;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg, #ffffff, #cde8df);box-shadow:0 0 0 6px rgba(205,232,223,0.55); }
+        .orbit-node { position:absolute;width:18%;height:18%;border-radius:50%;background:#ffffff;box-shadow:0 5px 14px rgba(31,63,119,0.18);display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);transition:transform 0.2s ease, box-shadow 0.2s ease; }
+        .orbit-node:hover { transform:translate(-50%,-50%) scale(1.08); }
+        .orbit-node-label { position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:#114a8b;white-space:nowrap; }
+        .orbit-node--top { left:50%;top:16%; }
+        .orbit-node--right { left:82.4%;top:39.5%; }
+        .orbit-node--bottom-right { left:70%;top:77.6%; }
+        .orbit-node--bottom-left { left:30%;top:77.6%; }
+        .orbit-node--left { left:17.6%;top:39.5%; }
+        .orbit-icon { width:clamp(14px,2.6vh,20px);height:clamp(14px,2.6vh,20px);color:#1f3f77;stroke:#1f3f77;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none; }
+        .orbit-icon--fill { fill:#1f3f77;stroke:none; }
+        .orbit-icon-img { width:clamp(14px,2.6vh,20px);height:clamp(14px,2.6vh,20px);object-fit:contain; }
+        .orbit-icon-img--tint { filter:invert(19%) sepia(52%) saturate(1721%) hue-rotate(202deg) brightness(94%) contrast(94%); }
+        .orbit-center .orbit-icon-img { width:clamp(11px,2.1vh,16px);height:clamp(11px,2.1vh,16px); }
+        .panel-card--select { padding:clamp(8px,1.6vh,18px) 16px; }
+        .panel-card--select .panel-body-text { margin:0; }
+        .panel-card--select .panel-card-illustration { margin-top:clamp(6px,1.2vh,12px);width:100%;aspect-ratio:3/2;max-height:clamp(90px,17vh,160px);border-radius:16px;overflow:hidden;position:relative;border:1px solid rgba(22,40,62,0.08);background:#f4fcf8;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px rgba(22,40,62,0.16); }
+        .panel-card--select .panel-card-illustration img { width:100%;height:100%;object-fit:cover;object-position:45% 40%;border-radius:16px;display:block; }
+        .panel-card--select .illustration-scrim { position:absolute;inset:0;background:linear-gradient(to top, rgba(15,25,40,0.72) 0%, rgba(15,25,40,0.18) 42%, rgba(15,25,40,0) 68%);pointer-events:none; }
+        .panel-card--select .click-indicator { position:absolute;left:46%;top:52%;width:0;height:0;pointer-events:none; }
+        .panel-card--select .click-ripple { position:absolute;left:0;top:0;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:2px solid #ffc63a;background:rgba(255,198,58,0.35);animation:clickRipple 2.6s ease-out infinite; }
+        .panel-card--select .click-ripple--delay { animation-delay:1.3s; }
+        .panel-card--select .click-cursor { position:absolute;left:0;top:0;margin:-2px 0 0 -2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.45));animation:clickPress 2.6s ease-in-out infinite; }
+        @keyframes clickRipple { 0% { transform:scale(0.4); opacity:0.9; } 70% { opacity:0.15; } 100% { transform:scale(1.9); opacity:0; } }
+        @keyframes clickPress { 0%, 15% { transform:scale(1); } 25% { transform:scale(0.8); } 35%, 100% { transform:scale(1); } }
+        .overlay-backdrop { display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.28);z-index:3000;align-items:center;justify-content:center;backdrop-filter:blur(2px); }
+        .overlay-backdrop.open { display:flex; }
+        .overlay-box { background:rgba(255,255,255,0.96);border:none;border-radius:24px;padding:42px 36px 32px;max-width:520px;width:92%;position:relative;color:#1e2a4a;max-height:80vh;overflow-y:auto;box-shadow:0 24px 60px rgba(17,74,139,0.12);backdrop-filter:blur(6px); }
+        .overlay-box::before { content:'';position:absolute;top:0;left:0;width:100%;height:6px;background:linear-gradient(90deg,#114a8b,#1f4d99);border-radius:24px 24px 0 0; }
+        .overlay-box h2 { margin:0 0 16px 0;font-size:36px;font-weight:900;color:#114a8b;text-transform:uppercase;letter-spacing:1.2px;line-height:1.1; }
+        .overlay-box p { margin:0 0 12px 0;font-size:14px;color:#4a6d9c;line-height:1.8; }
+        .overlay-box ul { margin:0 0 10px 0;padding-left:18px; }
+        .overlay-box ul li { font-size:13px;color:#4a6d9c;line-height:1.9; }
+        .overlay-close { position:absolute;top:16px;right:18px;background:transparent;border:none;color:#9aaabb;font-size:18px;cursor:pointer;line-height:1; }
+        .overlay-close:hover { color:#114a8b; }
+        #sidebar-header { padding:18px 22px 14px;background:#eff7ff;border-bottom:1px solid #d6e5fa;position:relative; }
+        #sidebar-header h1 { margin:0 0 3px 0;font-size:14px;font-weight:800;color:#114a8b;letter-spacing:0.5px;text-transform:uppercase; }
+        #sidebar-header p { margin:0;font-size:12px;color:#4a6d9c; }
+        #empty-state { flex:1;overflow-y:auto;padding:12px; }
+        .guide-cards { padding:10px 14px;display:flex;flex-direction:column;gap:12px; }
+        .guide-card { border-radius:14px;padding:14px 14px;display:flex;align-items:flex-start;gap:12px;border:1px solid;box-shadow:0 8px 22px rgba(17,74,139,0.08);background:#eef6ff; }
+        .guide-card span { font-size:18px;line-height:1;color:#114a8b; }
+        .guide-card-title { font-size:12px;font-weight:700;color:#114a8b;margin-bottom:4px;display:flex;align-items:center;gap:8px; }
+        .guide-card-filter-badge { display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#eff7ff;border:1px solid #d6e5fa;color:#114a8b;font-size:12px;flex-shrink:0;cursor:default; }
+        .guide-card-text { font-size:11px;color:#4a6d9c;line-height:1.6; }
+        .guide-card--blue { background:#eef6ff;border-color:#d6e5fa; }
+        .guide-card--clickable:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,0.12); transition:all .2s; }
+        .guide-card--clickable { transition:all .2s; }
+        @keyframes guidePulse {
+            0%,100% { transform:scale(1); opacity:1; }
+            50%      { transform:scale(1.18); opacity:0.75; }
+        }
+        .guide-card-pulse { animation:guidePulse 1.8s ease-in-out infinite; display:inline-block; }
+        .guide-card--mint { background:#e9f6eb;border-color:#cfe4d8; }
+        .guide-card--aqua { background:#e7f4f2;border-color:#c6e1dc; }
+        .guide-card--soft { background:#f0f4ff;border-color:#d3dbf4; }
+        .legend-swatch { display:inline-block;vertical-align:middle;width:38px;height:0;border-bottom:4px solid #0e9476;margin-right:8px; }
+        .legend-road { border-bottom-color: rgba(45,138,45,1.0); }
+        .legend-railway { border-bottom-style: dashed; border-bottom-color: rgba(0,0,0,1.0); }
+        .legend-dot { display:inline-block; vertical-align:middle; width:12px; height:12px; border-radius:50%; margin-right:8px; border:1px solid rgba(0,0,0,0.08); }
+        .legend-settesorelle { background: rgba(99,197,160,1.0); }
+        .province-stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px; }
+        .stat-card { background:#f7fbff;border:1px solid #d6e5fa;border-radius:12px;padding:12px 14px; }
+        .stat-card .label { font-size:10px;color:#4a6d9c;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px; }
+        .stat-card .value { font-size:18px;font-weight:800;color:#114a8b; }
+        .empty-hint { text-align:center;padding:16px;color:#4a6d9c;font-size:13px;border:1px dashed #cfe0f3;border-radius:10px;margin-top:6px;background:#f3f9ff; }
+        .empty-hint .icon { font-size:26px;margin-bottom:8px; }
+        #muni-panel { flex:1;display:none;flex-direction:column;overflow:hidden; }
+        #muni-header { padding:14px 44px 14px 18px;background:#eff7ff;border-bottom:1px solid #d6e5fa; }
+        #muni-name { font-size:17px;font-weight:800;color:#114a8b;margin:0 0 2px 0; }
+        #muni-meta { font-size:11px;color:#4a6d9c; }
+        #muni-pop-badge { display:inline-block;background:#dce8ff;color:#114a8b;border-radius:12px;padding:3px 12px;font-size:12px;font-weight:700;margin-top:5px;border:1px solid #b7d0ff; }
+        #close-btn { position:absolute;top:12px;right:12px;background:#114a8b;border:none;color:#ffffff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;font-weight:700;line-height:28px;text-align:center;transition:all .2s;box-shadow:0 2px 8px rgba(17,74,139,0.25); }
+        #close-btn:hover { background:#0d3a71;box-shadow:0 3px 12px rgba(17,74,139,0.4); }
+        #tab-bar { display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:#eff7ff;border-bottom:1px solid #d6e5fa; }
+        .tab-btn { flex:1 1 calc(50% - 6px);padding:8px 4px;background:#e2eaf5;border:1px solid #d0dff5;border-radius:8px;color:#4a6d9c;cursor:pointer;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:normal;text-align:center;line-height:1.3;transition:all .2s; }
+        .tab-btn.active { background:#1c4f8f;color:#ffffff;border-color:#1c4f8f; }
+        .tab-btn:hover:not(.active) { background:#d0dff5;color:#114a8b; }
+        #charts-area { flex:1;overflow-y:auto;padding:16px; }
+        .chart-section { display:none; }
+        .chart-section.active { display:block; }
+        .chart-title { font-size:12px;font-weight:700;color:#114a8b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px; }
+        .chart-wrapper { background:#f7fbff;border:1px solid #d6e5fa;border-radius:12px;padding:14px;margin-bottom:14px; }
+        .chart-wrapper canvas { max-height:220px; }
+        .kpi-row { display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap; }
+        .kpi-box { flex:1;min-width:80px;background:#f7fbff;border:1px solid #d6e5fa;border-radius:10px;padding:10px 12px;text-align:center; }
+        .kpi-box .kv { font-size:16px;font-weight:800;color:#114a8b; }
+        .kpi-box .kl { font-size:10px;color:#4a6d9c;margin-top:2px; }
+        .custom-tooltip-inner { background:#fff;border:1px solid #cfe0f3;border-radius:8px;padding:8px 12px;color:#114a8b;font-size:12px;white-space:nowrap; }
+        path.existing-infra-ghost { cursor: default !important; pointer-events: stroke !important; }
+        /* Suppress Leaflet SVG bounding-box rectangle artifacts on click */
+        .leaflet-pane svg rect,
+        .leaflet-overlay-pane svg rect,
+        .leaflet-zoom-animated rect,
+        svg.leaflet-zoom-animated rect {
+            stroke: none !important;
+            fill: none !important;
+            stroke-width: 0 !important;
+            display: none !important;
+            visibility: hidden !important;
+        }
+        .leaflet-interactive:focus { outline: none !important; }
+        .ferrovia-popup .leaflet-popup-content-wrapper { background:#fff;border:1px solid #cfe0f3;border-radius:8px;padding:0;box-shadow:0 2px 8px rgba(17,74,139,0.10); }
+        .ferrovia-popup .leaflet-popup-content { margin:8px 12px;color:#114a8b;font-size:12px;white-space:nowrap; }
+        .ferrovia-popup .leaflet-popup-tip { background:#cfe0f3; }
+        .ferrovia-popup .leaflet-popup-close-button { color:#114a8b;font-size:14px;top:4px;right:6px; }
+        #charts-area::-webkit-scrollbar,#empty-state::-webkit-scrollbar { width:4px; }
+        #charts-area::-webkit-scrollbar-thumb,#empty-state::-webkit-scrollbar-thumb { background:#d0d8e8;border-radius:2px; }
+        .infra-project-btn { width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:#114a8b;color:#ffffff;border:none;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(17,74,139,0.25); }
+        .infra-project-btn:hover { background:#0d3a71;box-shadow:0 3px 12px rgba(17,74,139,0.4); }
+        .infra-box { background:#f7fbff;border:1px solid #d6e5fa;border-radius:8px;padding:10px 12px;margin-bottom:8px; }
+        .infra-box-lbl { font-size:9px;color:#4a6d9c;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px; }
+        #infra-img-wrap{width:100%;border-radius:8px;overflow:hidden;background:#e8edf5;margin-bottom:10px;}
+        #infra-img{width:100%;height:auto;display:block;cursor:zoom-in;}
+        #infra-img-placeholder{width:100%;height:80px;display:flex;align-items:center;justify-content:center;color:#8a9ab0;font-size:12px;gap:6px;}
+        .img-lightbox-backdrop{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,16,28,0.88);z-index:4000;align-items:center;justify-content:center;padding:30px;box-sizing:border-box;overflow:hidden;touch-action:none;}
+        .img-lightbox-backdrop.open{display:flex;}
+        .img-lightbox-backdrop img{max-width:100%;max-height:100%;border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,0.5);cursor:zoom-in;transform-origin:center center;user-select:none;-webkit-user-drag:none;}
+        .img-lightbox-backdrop img.zoomed{cursor:grab;}
+        .img-lightbox-backdrop img.dragging{cursor:grabbing;}
+        .img-lightbox-close{position:absolute;top:20px;right:28px;background:transparent;border:none;color:#ffffff;font-size:30px;cursor:pointer;line-height:1;opacity:0.85;z-index:4001;}
+        .img-lightbox-close:hover{opacity:1;}
+        .img-lightbox-hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.6);font-size:11px;letter-spacing:.3px;pointer-events:none;}
+        /* Layer control icon animation */
+        @keyframes layerPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(17,74,139,0.5), 0 2px 8px rgba(0,0,0,0.2); transform: scale(1); }
+            50%      { box-shadow: 0 0 0 7px rgba(17,74,139,0), 0 2px 8px rgba(0,0,0,0.2); transform: scale(1.08); }
+        }
+        @keyframes layerFloat {
+            0%,100% { transform: translateY(0) scale(1); }
+            50%      { transform: translateY(-3px) scale(1.06); }
+        }
+        .leaflet-control-layers-toggle {
+            animation: layerFloat 2.4s ease-in-out infinite;
+            border-radius: 8px !important;
+            border: 2px solid #114a8b !important;
+            background-color: #eff7ff !important;
+            box-shadow: 0 2px 10px rgba(17,74,139,0.22) !important;
+            outline: none;
+        }
+        .leaflet-control-layers-toggle:hover {
+            animation: layerPulse 0.6s ease-out forwards;
+            background-color: #d6e5fa !important;
+            border-color: #0d3a71 !important;
+        }
+        /* FILTER */
+        #filter-toggle-btn { background:#eff7ff;border:1px solid #d6e5fa;color:#114a8b;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 2px 10px rgba(17,74,139,0.12); }
+        #filter-toggle-btn:hover { background:#d6e5fa; }
+        #filter-toggle-btn.active { background:#114a8b;border-color:#114a8b;color:#fff; }
+        #filter-panel { position:absolute;top:10px;left:302px;z-index:1500;width:290px;background:#ffffff;border:1px solid #d6e5fa;border-radius:14px;box-shadow:0 8px 24px rgba(17,74,139,0.12);display:none;flex-direction:column;max-height:calc(100vh - 120px);overflow:hidden; }
+        #filter-panel.open { display:flex; }
+        /* Embedded mode — in-flow inside left-layer-panel, no internal scroll */
+        #filter-panel.llp-open { position:relative;left:auto;top:auto;width:calc(100% + 20px);margin:0 -10px;border:none;border-top:1px solid #d6e5fa;border-bottom:1px solid #d6e5fa;border-radius:0;box-shadow:none;background:#ffffff;overflow:visible;max-height:none; }
+        #filter-panel.llp-open #filter-body { flex:0 0 auto;overflow:visible;max-height:none; }
+        #filter-panel.llp-open #filter-panel-header { display:none; }
+        #filter-panel.llp-open #existing-infra-section { display:none; }
+        #filter-body::-webkit-scrollbar { width:4px; }
+        #filter-body::-webkit-scrollbar-thumb { background:#d0d8e8;border-radius:2px; }
+        #filter-body::-webkit-scrollbar-track { background:transparent; }
+        /* SOCIO-ECONOMIC PANEL */
+        #socio-panel { position:absolute;left:0;z-index:1500;width:290px;background:rgba(255,255,255,0.97);border-right:1px solid #d6e5fa;box-shadow:4px 0 18px rgba(17,74,139,0.13);display:none;flex-direction:column;overflow-y:auto; }
+        #socio-panel.open { display:flex; }
+        #socio-panel.llp-open { position:relative;left:auto;top:auto;width:calc(100% + 20px);margin:0 -10px;border:none;border-top:1px solid #d6e5fa;box-shadow:none;max-height:none;overflow-y:visible; }
+        #socio-panel::-webkit-scrollbar { width:4px; }
+        #socio-panel::-webkit-scrollbar-thumb { background:#d0d8e8;border-radius:2px; }
+        #ferrovie-panel { display:none;width:100%;background:rgba(255,255,255,0.92);border:1px solid #d6e5fa;border-radius:8px;overflow:visible;margin-bottom:2px; }
+        #ferrovie-panel.open { display:block; }
+        .socio-group { border-bottom:1px solid #e8edf5; }
+        .socio-grp-hdr { display:flex;align-items:center;gap:7px;padding:8px 10px;background:#f5f9ff;border-bottom:1px solid #e0e8f5; }
+        .socio-grp-icon { color:#114a8b;font-size:12px;width:16px;text-align:center;flex-shrink:0; }
+        .socio-grp-name { font-size:12px;font-weight:800;color:#1e2a4a;text-transform:uppercase;letter-spacing:0.8px;flex:1; }
+        .socio-item { display:flex;align-items:center;gap:8px;padding:7px 12px 7px 14px;border-bottom:1px solid #f0f4ff; }
+        .socio-item:hover { background:#f5f9ff; }
+        .socio-swatch { width:15px;height:15px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.12); }
+        .socio-item-name { font-size:12px;color:#1e2a4a;font-weight:500;flex:1; }
+        .socio-chk { margin:0;accent-color:#114a8b;cursor:pointer;width:14px;height:14px;flex-shrink:0; }
+        /* CHOROPLETH LEGEND */
+        #choro-legend { position:absolute;bottom:24px;left:300px;z-index:1600;background:rgba(255,255,255,0.96);border:1px solid #d6e5fa;border-radius:8px;box-shadow:0 2px 12px rgba(17,74,139,0.13);padding:10px 13px 8px;min-width:160px;display:none; }
+        #choro-legend.visible { display:block; }
+        #choro-legend-title { font-size:9px;font-weight:800;color:#114a8b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px;white-space:nowrap; }
+        .choro-leg-row { display:flex;align-items:center;gap:7px;margin-bottom:3px; }
+        .choro-leg-swatch { width:22px;height:13px;border-radius:2px;border:1px solid rgba(0,0,0,0.1);flex-shrink:0; }
+        .choro-leg-label { font-size:9px;color:#1e2a4a;font-weight:500; }
+        #filter-panel-header { padding:10px 14px;background:#eff7ff;border-bottom:1px solid #d6e5fa;display:flex;justify-content:space-between;align-items:center;border-radius:14px 14px 0 0;flex-shrink:0; }
+        #filter-panel-header span { font-size:11px;font-weight:700;color:#114a8b;text-transform:uppercase;letter-spacing:1px; }
+        #filter-close-x { background:none;border:none;color:#4a6d9c;font-size:16px;cursor:pointer;line-height:1;padding:0; }
+        #filter-close-x:hover { color:#114a8b; }
+        #filter-body { overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0; }
+        .f-section-hdr { font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1.2px;background:#114a8b;padding:5px 10px;border-radius:7px;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between; }
+        .f-eye-btn { background:none;border:none;color:#fff;cursor:pointer;font-size:13px;padding:0;line-height:1;opacity:0.8;transition:opacity .2s; }
+        .f-eye-btn:hover { opacity:1; }
+        .f-eye-btn.active { opacity:1; }
+        .f-subsec-lbl { font-size:9px;font-weight:800;color:#114a8b;text-transform:uppercase;letter-spacing:1px;background:#eff7ff;padding:3px 8px;border-radius:5px;border-left:3px solid #114a8b; }
+        .f-section-sep { border:none;border-top:2px solid #d6e5fa;margin:6px 0; }
+        .f-group { display:flex;flex-direction:column;gap:4px; }
+        .f-lbl { font-size:9px;font-weight:700;color:#4a6d9c;text-transform:uppercase;letter-spacing:1px; }
+        .f-sel { width:100%;padding:8px 28px 8px 10px;background:#f7fbff;border:1px solid #d6e5fa;border-radius:8px;color:#114a8b;font-size:11px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23114a8b'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center; }
+        .f-sel:focus { border-color:#114a8b;background-color:#fff; }
+        .f-btn-row { display:flex;gap:8px;margin-top:2px; }
+        .f-btn-search { flex:1;padding:9px;background:#114a8b;border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-transform:uppercase; }
+        .f-btn-search:hover { background:#0f3a6d; }
+        .f-btn-reset { padding:9px 12px;background:#f7fbff;border:1px solid #d6e5fa;border-radius:8px;color:#4a6d9c;font-size:11px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif; }
+        .f-btn-reset:hover { border-color:#114a8b;color:#114a8b; }
+        .f-divider { border:none;border-top:1px solid #e4e8f0;margin:2px 0; }
+        .f-viewall { color:#4a6a9a;font-size:11px;font-weight:600;cursor:pointer;padding:2px 0; }
+        .f-viewall:hover { color:#1e2a4a; }
+        /* Endpoint dot tooltip */
+        .endpoint-tooltip {
+            background: #ffffff;
+            border: 2px solid #114a8b;
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 6px 20px rgba(17,74,139,0.18);
+            font-size: 14px;
+            font-weight: 700;
+            color: #114a8b;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .endpoint-tooltip::before { display: none; }
+        #filter-results { border-top:1px solid #e4e8f0;padding:10px 14px;overflow-y:auto;display:none; }
+        #details-toggle-btn { display:flex;align-items:center;gap:6px;width:100%;background:#eef3f8;border:1px solid #c4d6e8;border-radius:6px;color:#1c4f8f;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.9px;padding:6px 10px;cursor:pointer;margin-bottom:8px;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s,border-color .15s; }
+        #details-toggle-btn:hover { background:#dce9f5; }
+        #details-toggle-btn.active { background:#1c4f8f;border-color:#1c4f8f;color:#ffffff; }
+        #details-toggle-btn.active:hover { background:#174278; }
+        #details-toggle-icon { font-size:22px;transition:transform .2s; }
+        #f-count { font-size:9px;color:#8a9ab8;margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:1px; }
+        #f-list { display:flex;flex-direction:column;gap:6px; }
+        .f-item { background:#f8f9fc;border:1px solid #e4e8f0;border-radius:8px;padding:10px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all .15s; }
+        .f-item:hover { background:#f0f2f8;border-color:#a0b0cc; }
+        .f-item-icon { font-size:16px;flex-shrink:0; margin-top:4px; display:flex;align-items:center;justify-content:center;width:32px;height:32px; }
+        .rail-icon { position:relative;display:inline-block;width:24px;height:20px; }
+        .rail-icon::before,
+        .rail-icon::after { content:''; position:absolute; width:4px; height:100%; background:#000; border-radius:2px; transform-origin:center; }
+        .rail-icon::before { left:4px; transform: skewY(-12deg); }
+        .rail-icon::after { right:4px; transform: skewY(12deg); }
+        .rail-icon span { position:absolute; left:2px; width:20px; height:3px; background:#000; border-radius:2px; }
+        .rail-icon span:nth-child(1) { top:2px; transform: rotate(-6deg); }
+        .rail-icon span:nth-child(2) { top:7px; transform: rotate(-3deg); }
+        .rail-icon span:nth-child(3) { top:12px; transform: rotate(0deg); }
+        .rail-icon span:nth-child(4) { top:17px; transform: rotate(3deg); }
+        .road-icon { position:relative;display:inline-block;width:24px;height:20px; }
+        .road-icon::before,
+        .road-icon::after { content:''; position:absolute; width:5px; height:16px; background:#000; border-radius:2px; }
+        .road-icon::before { left:3px; top:2px; transform: skewY(-10deg); }
+        .road-icon::after { right:3px; top:2px; transform: skewY(10deg); }
+        .road-icon span { position:absolute; left:50%; width:2px; height:3px; background:#000; transform:translateX(-50%); }
+        .road-icon span:nth-child(1) { top:3px; }
+        .road-icon span:nth-child(2) { top:8px; }
+        .road-icon span:nth-child(3) { top:13px; }
+        .f-item-content { flex:1; display:flex;flex-direction:column;gap:4px; }
+        .f-item-name { font-size:12px;color:#1e2a4a;font-weight:700;line-height:1.3; }
+        .f-item-tag { font-size:10px;color:#8a9ab8; }
+        .f-item-actions { display:flex;gap:6px; align-items:center; flex-shrink:0; }
+        .f-action-btn { width:30px;height:30px;border:none;border-radius:6px;background:#fff;color:#1e2a4a;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s; }
+        .f-action-btn:hover { background:#1e2a4a;color:#fff; }
+        .f-action-btn i { font-size:14px; }
+        #zoom-banner { display:none;position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#fffce8;border:1px solid #e8c020;border-radius:8px;padding:8px 18px;font-size:11px;color:#8a6000;font-weight:600;z-index:1400;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+        #zoom-banner.show { display:block; }
+        /* ── LEFT LAYER PANEL ── */
+        #left-layer-panel { position:absolute;left:0;top:0;bottom:0;height:100%;width:clamp(230px,18vw,290px);z-index:1000;background:rgba(255,255,255,0.97);padding:14px 10px;box-shadow:4px 0 18px rgba(17,74,139,0.13);border-right:1px solid #d6e5fa;display:flex;flex-direction:column;justify-content:flex-start;gap:5px;overflow-y:scroll; }
+        #left-layer-panel::-webkit-scrollbar { width:6px; }
+        #left-layer-panel::-webkit-scrollbar-track { background:transparent; }
+        #left-layer-panel::-webkit-scrollbar-thumb { background:#b8cce0;border-radius:3px; }
+        #left-layer-panel::-webkit-scrollbar-thumb:hover { background:#1c4f8f; }
+        #left-layer-panel-title { font-size:13px;font-weight:800;color:#114a8b;text-transform:uppercase;letter-spacing:1.4px;text-align:center;padding:2px 0 8px;border-bottom:1px solid #d6e5fa;margin-bottom:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:7px; }
+        #left-layer-panel-title svg { width:19px;height:19px;flex-shrink:0; }
+        .llp-btn { display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;border:none;color:#9aa0a6;font-size:11px;font-weight:400;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;transition:all 0.2s ease;font-family:'DM Sans',sans-serif;width:100%;text-align:left;line-height:1.4;background:#e9eef1;position:relative; }
+        .llp-btn.on { background:#79c4b4;color:#ffffff;font-weight:500; }
+        .llp-btn:hover { filter:brightness(1.08); }
+        .llp-icon-wrapper { width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;min-width:24px; }
+        .llp-dot { width:20px;height:20px;border:2px solid #c4cace;border-radius:5px;flex-shrink:0;display:inline-block;background:transparent;transition:all 0.2s ease;position:relative; }
+        .llp-btn.on .llp-dot { display:none !important; }
+        .llp-check { display:none !important;font-size:14px;background:#ffffff;color:#1c4f8f;border-radius:5px;width:20px;height:20px;min-width:20px;min-height:20px;align-items:center;justify-content:center;flex-shrink:0;font-weight:900;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,0.15);position:relative;padding:0; }
+        .llp-check::before { content:'\2713';font-size:14px;font-weight:900;line-height:1;display:block; }
+        .llp-check.ti { color:#1c4f8f !important; }
+        .llp-btn:not(.on) .llp-check { display:none !important;visibility:hidden !important;opacity:0 !important; }
+        .llp-btn.on .llp-check { display:flex !important;visibility:visible !important;opacity:1 !important; }
+        </style>
+    </head>
+    <body>
+        <!-- GLOBAL NAVBAR -->
+        <div id="global-navbar">
+            <img id="navbar-logo" src="images/logo-TRA.I.L_trasparente.png" alt="TRA.I.L logo">
+            <div class="nav-links">
+                <button class="nav-link" onclick="openOverlay('overlay-project')" data-it="Panoramica Progetto" data-en="Project Overview">Project Overview</button>
+                <button class="nav-link" onclick="openOverlay('overlay-data')" data-it="Fonti Dati" data-en="Data Source">Data Source</button>
+                <button class="nav-link" onclick="openOverlay('overlay-about')" data-it="Chi Siamo" data-en="About Us">About Us</button>
+                <button class="nav-link" onclick="openOverlay('overlay-help')" data-it="Aiuto" data-en="Help">Help</button>
+            </div>
+            <div class="nav-navbar-lang">
+                <button class="nav-lang-btn" onclick="setLang('it')">IT</button>
+                <button class="nav-lang-btn active" onclick="setLang('en')">EN</button>
+            </div>
+        </div>
+
+        <!-- OVERLAY: Project Overview -->
+        <div id="overlay-project" class="overlay-backdrop" onclick="closeOverlayBackdrop(event,this)">
+            <div class="overlay-box">
+                <button class="overlay-close" onclick="closeOverlay('overlay-project')">&#10005;</button>
+                <h2 data-it="Panoramica Progetto" data-en="Project Overview">Project Overview</h2>
+                <p data-it="Questo WebGIS fornisce una visualizzazione interattiva dei dati demografici e imprenditoriali della Provincia di Cuneo, Piemonte, Italia." data-en="This WebGIS provides an interactive visualization of demographic and business data for the Province of Cuneo, Piedmont, Italy.">This WebGIS provides an interactive visualization of demographic and business data for the Province of Cuneo, Piedmont, Italy.</p>
+                <ul>
+                    <li data-it="247 comuni della Provincia di Cuneo" data-en="247 municipalities of the Province of Cuneo">247 municipalities of the Province of Cuneo</li>
+                    <li data-it="Dati demografici per fascia d'eta" data-en="Demographic data by age group">Demographic data by age group</li>
+                    <li data-it="Dati imprenditoriali per settore" data-en="Business data by sector (Agriculture, Manufacturing, Transport)">Business data by sector (Agriculture, Manufacturing, Transport)</li>
+                    <li data-it="Infrastrutture stradali e ferroviarie" data-en="Road and railway infrastructure">Road and railway infrastructure</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OVERLAY: Data Source -->
+        <div id="overlay-data" class="overlay-backdrop" onclick="closeOverlayBackdrop(event,this)">
+            <div class="overlay-box">
+                <button class="overlay-close" onclick="closeOverlay('overlay-data')">&#10005;</button>
+                <h2 data-it="Fonti Dati" data-en="Data Source">Data Source</h2>
+                <ul>
+                    <li data-it="ISTAT - Dati demografici comunali 2022/2023" data-en="ISTAT - Municipal demographic data 2022/2023">ISTAT - Municipal demographic data 2022/2023</li>
+                    <li data-it="Registro Imprese - Sedi attive 2025" data-en="Business Registry - Active business locations 2025">Business Registry - Active business locations 2025</li>
+                    <li data-it="OpenStreetMap - Mappa di base" data-en="OpenStreetMap - Base map">OpenStreetMap - Base map</li>
+                    <li data-it="Regione Piemonte - Confini amministrativi" data-en="Regione Piemonte - Administrative boundaries">Regione Piemonte - Administrative boundaries</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- OVERLAY: About Us -->
+        <div id="overlay-about" class="overlay-backdrop" onclick="closeOverlayBackdrop(event,this)">
+            <div class="overlay-box">
+                <button class="overlay-close" onclick="closeOverlay('overlay-about')">&#10005;</button>
+                <h2 data-it="Chi Siamo" data-en="About Us">About Us</h2>
+                <p data-it="Questo progetto e stato sviluppato per fornire uno strumento di analisi territoriale per la Provincia di Cuneo." data-en="This project was developed to provide a territorial analysis tool for the Province of Cuneo.">This project was developed to provide a territorial analysis tool for the Province of Cuneo.</p>
+                <p data-it="Costruito con QGIS, Leaflet.js e Chart.js." data-en="Built with QGIS, Leaflet.js and Chart.js.">Built with QGIS, Leaflet.js and Chart.js.</p>
+            </div>
+        </div>
+
+        <!-- OVERLAY: Help -->
+        <div id="overlay-help" class="overlay-backdrop" onclick="closeOverlayBackdrop(event,this)">
+            <div class="overlay-box">
+                <button class="overlay-close" onclick="closeOverlay('overlay-help')">&#10005;</button>
+                <h2 data-it="Aiuto" data-en="Help">Help</h2>
+                <ul>
+                    <li data-it="Clicca su un comune per vedere i dati nel pannello di destra" data-en="Click on a municipality to see data in the right panel">Click on a municipality to see data in the right panel</li>
+                    <li data-it="Usa i tab per navigare tra i dati demografici e imprenditoriali" data-en="Use the tabs to navigate between demographic and business data">Use the tabs to navigate between demographic and business data</li>
+                    <li data-it="Usa i pulsanti IT/EN per cambiare lingua" data-en="Use IT/EN buttons to switch language">Use IT/EN buttons to switch language</li>
+                    <li data-it="Usa il filtro per filtrare le infrastrutture" data-en="Use the filter to filter infrastructure">Use the filter to filter infrastructure</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- LIGHTBOX: Project image -->
+        <div id="img-lightbox" class="img-lightbox-backdrop" onclick="closeOverlayBackdrop(event,this)">
+            <button class="img-lightbox-close" onclick="closeImageLightbox()">&#10005;</button>
+            <img id="img-lightbox-pic" src="" alt="">
+            <div class="img-lightbox-hint" data-it="Scorri per zoom" data-en="Scroll to zoom">Scorri per zoom</div>
+        </div>
+
+        <div id="app-wrapper">
+            <div id="map-container">
+                <div id="map"></div>
+                <div id="zoom-banner"></div>
+                <!-- LEFT LAYER PANEL -->
+                <div id="left-layer-panel">
+                    <div id="left-layer-panel-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#1c4f8f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3 L19 8.2 L12 13.4 L5 8.2 Z" />
+                            <path d="M4.2 15 L12 20.2 L19.8 15" />
+                        </svg>
+                        <span data-it="Livelli" data-en="Layers">Layers</span>
+                    </div>
+                    <button class="llp-btn on" id="llp-provincia" data-active="1" onclick="toggleLlpLayer('provincia')">
+                        <div class="llp-icon-wrapper">
+                            <span class="llp-dot"></span>
+                            <i class="llp-check ti ti-check"></i>
+                        </div>
+                        <span data-it="Provincia" data-en="Province">Province</span>
+                    </button>
+                    <button class="llp-btn" id="llp-comuni" data-active="0" onclick="toggleLlpLayer('comuni')">
+                        <div class="llp-icon-wrapper">
+                            <span class="llp-dot"></span>
+                            <i class="llp-check ti ti-check"></i>
+                        </div>
+                        <span data-it="Comuni" data-en="Municipalities">Municipalities</span>
+                    </button>
+                    <button class="llp-btn" id="llp-ferrovie" data-active="0" onclick="toggleFerroviePanel()">
+                        <div class="llp-icon-wrapper">
+                            <span class="llp-dot"></span>
+                            <i class="llp-check ti ti-check"></i>
+                        </div>
+                        <span data-it="Ferrovie e&lt;br&gt;Aeroporto" data-en="Railways &amp;&lt;br&gt;Airport">Railways &amp;<br>Airport</span>
+                    </button>
+                    <!-- FERROVIE E AEROPORTO PANEL — inline accordion -->
+                    <div id="ferrovie-panel">
+                        <div class="socio-group">
+                            <div class="socio-grp-hdr">
+                                <span class="socio-grp-icon"><i class="fas fa-train"></i></span>
+                                <span class="socio-grp-name" data-it="Ferrovie" data-en="Railways">Railways</span>
+                            </div>
+                            <div class="socio-item">
+                                <span class="socio-swatch" style="background:rgba(0,0,0,1.0);border-style:dashed;"></span>
+                                <span class="socio-item-name" data-it="Rete Ferroviaria" data-en="Railway Network">Railway Network</span>
+                                <input type="checkbox" class="socio-chk" id="ferr-chk-ferrovie" onchange="toggleFerrLayer('ferrovie',this)">
+                            </div>
+                        </div>
+                        <div class="socio-group">
+                            <div class="socio-grp-hdr">
+                                <span class="socio-grp-icon"><i class="fas fa-plane"></i></span>
+                                <span class="socio-grp-name" data-it="Aeroporti" data-en="Airports">Airports</span>
+                            </div>
+                            <div class="socio-item">
+                                <span class="socio-swatch" style="background:#4a89c7;"></span>
+                                <span class="socio-item-name" data-it="Aeroporto di Cuneo" data-en="Cuneo Airport">Cuneo Airport</span>
+                                <input type="checkbox" class="socio-chk" id="ferr-chk-aeroporti" onchange="toggleFerrLayer('aeroporti',this)">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="llp-btn" id="llp-autostrade" data-active="0" onclick="toggleLlpLayer('autostrade')">
+                        <div class="llp-icon-wrapper">
+                            <span class="llp-dot"></span>
+                            <i class="llp-check ti ti-check"></i>
+                        </div>
+                        <span data-it="Autostrade" data-en="Motorways">Motorways</span>
+                    </button>
+                    <button class="llp-btn" id="llp-infrastrutture" data-active="0" onclick="toggleFilterPanel(true)">
+                        <div class="llp-icon-wrapper">
+                            <span class="llp-dot"></span>
+                            <i class="llp-check ti ti-check"></i>
+                        </div>
+                        <span data-it="Infrastrutture&lt;br&gt;Strategiche" data-en="Strategic&lt;br&gt;Infrastructure">Strategic<br>Infrastructure</span>
+                    </button>
+                    <button class="llp-btn" id="llp-indicatori" data-active="0" onclick="toggleSocioPanel()">
+                        <div class="llp-icon-wrapper">
+                            <span class="llp-dot"></span>
+                            <i class="llp-check ti ti-check"></i>
+                        </div>
+                        <span data-it="Indicatori&lt;br&gt;Socio-Economici" data-en="Socio-Economic&lt;br&gt;Indicators">Socio-Economic<br>Indicators</span>
+                    </button>
+                </div>
+                <!-- SOCIO-ECONOMIC LAYER PANEL -->
+                <div id="socio-panel">
+                    <div class="socio-group">
+                        <div class="socio-grp-hdr">
+                            <span class="socio-grp-icon"><i class="fas fa-users"></i></span>
+                            <span class="socio-grp-name" data-it="Demografia" data-en="Demographics">Demographics</span>
+                        </div>
+                        <div class="socio-item">
+                            <span class="socio-swatch" style="background:#1f6452;"></span>
+                            <span class="socio-item-name" data-it="Densità demografica" data-en="Population Density">Population Density</span>
+                            <input type="checkbox" class="socio-chk" data-key="pop" onchange="toggleChoroLayer('pop',this)">
+                        </div>
+                    </div>
+                    <div class="socio-group">
+                        <div class="socio-grp-hdr">
+                            <span class="socio-grp-icon"><i class="fas fa-building"></i></span>
+                            <span class="socio-grp-name" data-it="Sedi Attive 2025" data-en="Active Businesses 2025">Active Businesses 2025</span>
+                        </div>
+                        <div class="socio-item">
+                            <span class="socio-swatch" style="background:#725435;"></span>
+                            <span class="socio-item-name" data-it="Sedi Attive – Agricoltura" data-en="Active Businesses – Agriculture">Active Businesses – Agriculture</span>
+                            <input type="checkbox" class="socio-chk" data-key="agr" onchange="toggleChoroLayer('agr',this)">
+                        </div>
+                        <div class="socio-item">
+                            <span class="socio-swatch" style="background:#3853e1;"></span>
+                            <span class="socio-item-name" data-it="Sedi Attive – Manifattura" data-en="Active Businesses – Manufacturing">Active Businesses – Manufacturing</span>
+                            <input type="checkbox" class="socio-chk" data-key="man" onchange="toggleChoroLayer('man',this)">
+                        </div>
+                        <div class="socio-item">
+                            <span class="socio-swatch" style="background:#54278f;"></span>
+                            <span class="socio-item-name" data-it="Sedi Attive – Trasporto" data-en="Active Businesses – Transport">Active Businesses – Transport</span>
+                            <input type="checkbox" class="socio-chk" data-key="tra" onchange="toggleChoroLayer('tra',this)">
+                        </div>
+                    </div>
+                </div>
+                <!-- CHOROPLETH LEGEND -->
+                <div id="choro-legend">
+                    <div id="choro-legend-title"></div>
+                    <div id="choro-legend-body"></div>
+                </div>
+                <!-- FLOATING FILTER CARD -->
+                <div id="filter-panel">
+                    <div id="filter-panel-header">
+                        <span data-it="Filtra" data-en="Filter">Filter</span>
+                        <button id="filter-close-x" onclick="toggleFilterPanel()">&#10005;</button>
+                    </div>
+                    <div id="filter-body">
+
+                        <!-- ===== EXISTING INFRASTRUCTURE ===== -->
+                        <div id="existing-infra-section">
+                        <div class="f-section-hdr">
+                            <span data-it="Infrastrutture esistenti" data-en="Existing Infrastructure">Existing Infrastructure</span>
+                            <button class="f-eye-btn" id="inv-eye-btn" onclick="toggleAllInvariant()" title="View all existing infrastructure"><i class="fas fa-eye-slash"></i></button>
+                        </div>
+
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Settore" data-en="Sector">Sector</div>
+                            <select class="f-sel" id="fi-sector" onchange="updateInvariantNames()">
+                                <option value="" data-it="Tutti" data-en="All">All</option>
+                                <option value="road" data-it="Strada" data-en="Road">Road</option>
+                                <option value="railway" data-it="Ferrovia" data-en="Railway">Railway</option>
+                            </select>
+                        </div>
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Nome" data-en="Name">Name</div>
+                            <select class="f-sel" id="fi-name">
+                                <option value="" data-it="Tutti" data-en="All">All</option>
+                                <option value="A33 ASTI - CUNEO" data-type="road">A33 ASTI - CUNEO</option>
+                                <option value="A6 TORINO - SAVONA" data-type="road">A6 TORINO - SAVONA</option>
+                                <option value="Ferrovia Alessandria-Cavallermaggiore" data-type="railway">Ferrovia Alessandria-Cavallermaggiore</option>
+                                <option value="Ferrovia Carmagnola-Bra" data-type="railway">Ferrovia Carmagnola-Bra</option>
+                                <option value="Ferrovia Ceva-Ormea" data-type="railway">Ferrovia Ceva-Ormea</option>
+                                <option value="Ferrovia Cuneo-Ventimiglia" data-type="railway">Ferrovia Cuneo-Ventimiglia</option>
+                                <option value="Ferrovia Savigliano-Saluzzo-Cuneo" data-type="railway">Ferrovia Savigliano-Saluzzo-Cuneo</option>
+                                <option value="Ferrovia Torino-Savona" data-type="railway">Ferrovia Torino-Savona</option>
+                                <option value="Fossano-Cuneo" data-type="railway">Fossano-Cuneo</option>
+                            </select>
+                        </div>
+                        <div class="f-btn-row">
+                            <button class="f-btn-search" onclick="doInvariantFilter()" data-it="Cerca" data-en="Search">Search</button>
+                            <button class="f-btn-reset" onclick="doInvariantReset()" data-it="Reimposta" data-en="Reset">Reset</button>
+                        </div>
+                        <hr class="f-divider">
+                        <div id="fi-filter-results" style="display:none;">
+                            <div id="fi-count" style="font-size:9px;color:#8a9ab8;margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:1px;"></div>
+                            <div id="fi-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+                        </div>
+
+                        <hr class="f-section-sep">
+                        </div>
+
+                        <!-- ===== STRATEGIC INFRASTRUCTURE ===== -->
+
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Settore" data-en="Sector">Sector</div>
+                            <select class="f-sel" id="f-sector" onchange="updateStrategicNames()">
+                                <option value="" data-it="Tutti i settori" data-en="All sectors">All sectors</option>
+                                <option value="Strada" data-it="Strada" data-en="Road">Road</option>
+                                <option value="Ferrovia" data-it="Ferrovia" data-en="Railway">Railway</option>
+                                <option value="Trafori e Valichi" data-it="Trafori e Valichi" data-en="Tunnel / Pass">Tunnel / Pass</option>
+                            </select>
+                        </div>
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Nome" data-en="Name">Name</div>
+                            <select class="f-sel" id="f-strat-name">
+                                <option value="" data-it="Tutti" data-en="All">All</option>
+                                <option value="A33 (tronco I A6-Cuneo)" data-sector="Strada">A33 (tronco I A6-Cuneo)</option>
+                                <option value="A6 (A33)" data-sector="Strada">A6 (A33)</option>
+                                <option value="Adeguamento SP7-Pollenzo" data-sector="Strada">Adeguamento SP7-Pollenzo</option>
+                                <option value="Ponte dell'Olla (SS21)" data-sector="Strada">Ponte dell'Olla (SS21)</option>
+                                <option value="SS21" data-sector="Strada">SS21</option>
+                                <option value="Tangenziale di Fossano" data-sector="Strada">Tangenziale di Fossano</option>
+                                <option value="Tangenziale di Mondovì" data-sector="Strada">Tangenziale di Mondov&#xEC;</option>
+                                <option value="Terzo Ponte Alba" data-sector="Strada">Terzo Ponte Alba</option>
+                                <option value="Variante Est di Alba e 3° ponte" data-sector="Strada">Variante Est di Alba e 3&deg; ponte</option>
+                                <option value="Variante di Demonte" data-sector="Strada">Variante di Demonte</option>
+                                <option value="Linea Fossano-Cuneo" data-sector="Ferrovia">Linea Fossano-Cuneo</option>
+                                <option value="Linea Torino-Savona" data-sector="Ferrovia">Linea Torino-Savona</option>
+                                <option value="Colle Maddalena" data-sector="Trafori e Valichi">Colle Maddalena</option>
+                                <option value="Traforo Armo-Cantarana (SS28)" data-sector="Trafori e Valichi">Traforo Armo-Cantarana (SS28)</option>
+                                <option value="Tunnel Tenda (SS20)" data-sector="Trafori e Valichi">Tunnel Tenda (SS20)</option>
+                            </select>
+                        </div>
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Fase" data-en="Phase">Phase</div>
+                            <select class="f-sel" id="f-fase">
+                                <option value="" data-it="Tutte le fasi" data-en="All phases">All phases</option>
+                                <option value="In esercizio" data-it="In esercizio" data-en="In operation">In esercizio</option>
+                                <option value="Lavori in corso" data-it="Lavori in corso" data-en="Under construction">Lavori in corso</option>
+                                <option value="PFTE" data-it="PFTE" data-en="PFTE">PFTE</option>
+                                <option value="Progetto esecutivo" data-it="Progetto esecutivo" data-en="Executive project">Progetto esecutivo</option>
+                                <option value="Proposta" data-it="Proposta" data-en="Proposal">Proposta</option>
+                            </select>
+                        </div>
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Tipologia intervento" data-en="Intervention Type">Intervention Type</div>
+                            <select class="f-sel" id="f-tipo">
+                                <option value="" data-it="Tutti i tipi" data-en="All types">All types</option>
+                                <option value="Ammodernamento" data-it="Ammodernamento" data-en="Modernisation">Ammodernamento</option>
+                                <option value="Nessun intervento" data-it="Nessun intervento" data-en="No intervention">Nessun intervento</option>
+                                <option value="Progetto ex novo" data-it="Progetto ex novo" data-en="New project">Progetto ex novo</option>
+                            </select>
+                        </div>
+                        <div class="f-group">
+                            <div class="f-lbl" data-it="Commissionato" data-en="Commissioned">Commissioned</div>
+                            <select class="f-sel" id="f-commiss">
+                                <option value="" data-it="Tutti" data-en="All">All</option>
+                                <option value="1" data-it="&#10003; Sì" data-en="&#10003; Yes">&#10003; Yes</option>
+                                <option value="0" data-it="&#10007; No" data-en="&#10007; No">&#10007; No</option>
+                            </select>
+                        </div>
+                        <div class="f-btn-row">
+                            <button class="f-btn-search" onclick="doFilter()" data-it="Cerca" data-en="Search">Search</button>
+                            <button class="f-btn-reset" onclick="doReset()" data-it="Reimposta" data-en="Reset">Reset</button>
+                        </div>
+                        <hr class="f-divider">
+                    </div>
+                    <div id="filter-results">
+                        <button id="details-toggle-btn" onclick="toggleDetailsSection()">
+                            <span id="details-toggle-icon">▾</span> <span data-it="Dettagli Infrastrutture Strategiche" data-en="Strategic Infrastructure Details">Strategic Infrastructure Details</span>
+                        </button>
+                        <div id="details-body">
+                            <div id="f-count"></div>
+                            <div id="f-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR -->
+            <div id="sidebar">
+                <div id="sidebar-header" style="display:none;">
+                    <h1 id="sidebar-title" data-it="Provincia di Cuneo &#8211; Dashboard" data-en="Cuneo Province &#8211; Dashboard">Cuneo Province &#8211; Dashboard</h1>
+                    <p id="sidebar-sub" style="display:none;"></p>
+                </div>
+                <!-- EMPTY STATE -->
+                <div id="empty-state">
+                    <div class="right-panel-stack">
+                        <section class="hero-card">
+                            <svg class="hero-wave" viewBox="0 0 280 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M0 36C20 24 40 24 60 36C80 48 100 48 120 36C140 24 160 24 180 36C200 48 220 48 240 36C260 24 280 24 280 24" stroke="#26405f" stroke-width="1.5" stroke-opacity="0.35" stroke-linecap="round"/>
+                                <path d="M0 58C20 46 40 46 60 58C80 70 100 70 120 58C140 46 160 46 180 58C200 70 220 70 240 58C260 46 280 46 280 46" stroke="#26405f" stroke-width="1.5" stroke-opacity="0.35" stroke-linecap="round"/>
+                                <path d="M0 80C20 68 40 68 60 80C80 92 100 92 120 80C140 68 160 68 180 80C200 92 220 92 240 80C260 68 280 68 280 68" stroke="#26405f" stroke-width="1.5" stroke-opacity="0.35" stroke-linecap="round"/>
+                                <path d="M0 102C20 90 40 90 60 102C80 114 100 114 120 102C140 90 160 90 180 102C200 114 220 114 240 102C260 90 280 90 280 90" stroke="#26405f" stroke-width="1.5" stroke-opacity="0.35" stroke-linecap="round"/>
+                                <path d="M0 124C20 112 40 112 60 124C80 136 100 136 120 124C140 112 160 112 180 124C200 136 220 136 240 124C260 112 280 112 280 112" stroke="#26405f" stroke-width="1.5" stroke-opacity="0.35" stroke-linecap="round"/>
+                            </svg>
+                            <div class="hero-eyebrow">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 21s-6-5.4-6-10.2A6 6 0 0 1 18 10.8C18 15.6 12 21 12 21Z"></path>
+                                    <circle cx="12" cy="10.8" r="2.2"></circle>
+                                </svg>
+                                <span data-it="PROVINCIA DI CUNEO" data-en="PROVINCE OF CUNEO">PROVINCE OF CUNEO</span>
+                            </div>
+                            <h2 class="hero-title" data-it="Dashboard&lt;br&gt;Territoriale" data-en="Territorial&lt;br&gt;Data Dashboard">Territorial<br>Data Dashboard</h2>
+                            <p class="hero-subtitle" data-it="Esplora i dati demografici, imprenditoriali e delle infrastrutture strategiche di ogni comune." data-en="Explore Demographic, business &amp; strategic infrastructure data across every municipality.">Explore Demographic, business &amp; strategic infrastructure data across every municipality.</p>
+                        </section>
+
+                        <section class="panel-card">
+                            <div class="panel-chip">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 3 L19 8.2 L12 13.4 L5 8.2 Z" />
+                                    <path d="M4.2 15 L12 20.2 L19.8 15" />
+                                </svg>
+                                <span data-it="ESPLORA I LIVELLI" data-en="EXPLORE LAYERS">EXPLORE LAYERS</span>
+                            </div>
+                            <div class="panel-body-text" data-it="Attiva i livelli &lt;strong&gt;demografici&lt;/strong&gt;, &lt;strong&gt;infrastrutturali&lt;/strong&gt; e &lt;strong&gt;imprenditoriali&lt;/strong&gt; dal pannello a sinistra." data-en="Toggle &lt;strong&gt;demographic&lt;/strong&gt;, &lt;strong&gt;infrastructure&lt;/strong&gt; &amp; &lt;strong&gt;business&lt;/strong&gt; layers from the left panel.">Toggle <strong>demographic</strong>, <strong>infrastructure</strong> &amp; <strong>business</strong> layers from the left panel.</div>
+                        </section>
+
+                        <section class="panel-card panel-card--select">
+                            <div class="panel-chip">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 21s-6-5.4-6-10.2A6 6 0 0 1 18 10.8C18 15.6 12 21 12 21Z"></path>
+                                    <circle cx="12" cy="10.8" r="2.3"></circle>
+                                </svg>
+                                <span data-it="SELEZIONA UN COMUNE" data-en="SELECT A MUNICIPALITY">SELECT A MUNICIPALITY</span>
+                            </div>
+                            <div class="panel-body-text" data-it="Clicca su un comune o un'infrastruttura strategica per vedere la dashboard dettagliata." data-en="Click on a municipality or strategic infrastructure to see the detailed dashboard.">Click on a municipality or strategic infrastructure to see the detailed dashboard.</div>
+                            <div class="panel-card-illustration" aria-hidden="true">
+                                <img src="images/cuneo-card.jpg" alt="Province of Cuneo" />
+                                <div class="illustration-scrim"></div>
+                                <div class="click-indicator">
+                                    <span class="click-ripple"></span>
+                                    <span class="click-ripple click-ripple--delay"></span>
+                                    <svg class="click-cursor" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                                        <path d="M5 3l3.5 15.5 2.2-5.9 5.9-2.2L5 3z" fill="#ffffff" stroke="#16283e" stroke-width="1.3" stroke-linejoin="round"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="panel-card panel-card--data">
+                            <h3 class="data-card-title" data-it="CATEGORIE DI DATI" data-en="DATA CATEGORIES">DATA CATEGORIES</h3>
+                            <div class="orbit-wrap" aria-label="Data categories orbit diagram">
+                                <div class="orbit-ring"></div>
+                                <div class="orbit-center">
+                                    <img class="orbit-icon-img" src="images/statistics.png" alt="Data overview" />
+                                </div>
+                                <div class="orbit-node orbit-node--top">
+                                    <svg class="orbit-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <circle cx="9" cy="7.5" r="3"></circle>
+                                        <path d="M2.5 20v-1.5a5 5 0 0 1 5-5h3a5 5 0 0 1 5 5V20"></path>
+                                        <circle cx="17" cy="7.8" r="2.3"></circle>
+                                        <path d="M15.8 13.3c2.4.4 4.2 2.4 4.2 4.9V20"></path>
+                                    </svg>
+                                    <span class="orbit-node-label" data-it="Popolazione" data-en="Population">Population</span>
+                                </div>
+                                <div class="orbit-node orbit-node--right">
+                                    <img class="orbit-icon-img orbit-icon-img--tint" src="images/fertilizer.png" alt="Agriculture" />
+                                    <span class="orbit-node-label" data-it="Agricoltura" data-en="Agriculture">Agriculture</span>
+                                </div>
+                                <div class="orbit-node orbit-node--bottom-right">
+                                    <img class="orbit-icon-img orbit-icon-img--tint" src="images/factory.png" alt="Industry" />
+                                    <span class="orbit-node-label" data-it="Industria" data-en="Industry">Industry</span>
+                                </div>
+                                <div class="orbit-node orbit-node--bottom-left">
+                                    <img class="orbit-icon-img orbit-icon-img--tint" src="images/logistic.png" alt="Transportation" />
+                                    <span class="orbit-node-label" data-it="Trasporti" data-en="Transportation">Transportation</span>
+                                </div>
+                                <div class="orbit-node orbit-node--left">
+                                    <img class="orbit-icon-img orbit-icon-img--tint" src="images/motorway.png" alt="Infrastructure" />
+                                    <span class="orbit-node-label" data-it="Infrastrutture" data-en="Infrastructure">Infrastructure</span>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                <!-- MUNICIPALITY PANEL -->
+                <div id="muni-panel">
+                    <button id="close-btn" onclick="closeMuniPanel()">&#10005;</button>
+                    <div id="muni-header">
+                        <div id="muni-name">&#8211;</div>
+                        <div id="muni-meta"></div>
+                        <div id="muni-pop-badge">&#8211;</div>
+                    </div>
+                    <div id="tab-bar">
+                        <button class="tab-btn active" data-tab="demo" data-it="Popolazione" data-en="Population" onclick="switchTab(this,'demo')" data-it="Popolazione" data-en="Population">Population</button>
+                        <button class="tab-btn" data-tab="agr" data-it="Agricoltura" data-en="Agriculture" onclick="switchTab(this,'agr')" data-it="Agricoltura" data-en="Agriculture">Agriculture</button>
+                        <button class="tab-btn" data-tab="man" data-it="Manifatturiero" data-en="Manufacturing" onclick="switchTab(this,'man')" data-it="Manifatturiero" data-en="Manufacturing">Manufacturing</button>
+                        <button class="tab-btn" data-tab="tra" data-it="Trasporti" data-en="Transport" onclick="switchTab(this,'tra')" data-it="Trasporti" data-en="Transport">Transport</button>
+                        <button class="tab-btn" data-tab="ing" data-it="All'ingrosso" data-en="Wholesale" onclick="switchTab(this,'ing')" data-it="All'ingrosso" data-en="Wholesale">Wholesale</button>
+                    </div>
+                    <div id="charts-area">
+                        <div id="tab-demo" class="chart-section active">
+                            <div class="kpi-row" id="demo-kpis"></div>
+                            <div class="chart-title" data-it="Distribuzione per fascia eta" data-en="Age Group Distribution" data-it="Distribuzione per fascia d'età" data-en="Age Group Distribution">Age Group Distribution</div>
+                            <div class="chart-wrapper"><canvas id="chart-age"></canvas></div>
+                        </div>
+                        <div id="tab-agr" class="chart-section">
+                            <div class="kpi-row" id="agr-kpis"></div>
+                            <div class="chart-title" data-it="Imprese per numero di addetti" data-en="Firms by Employee Size" data-it="Imprese per numero di addetti" data-en="Firms by Employee Size">Firms by Employee Size</div>
+                            <div class="chart-wrapper"><canvas id="chart-agr"></canvas></div>
+                        </div>
+                        <div id="tab-man" class="chart-section">
+                            <div class="kpi-row" id="man-kpis"></div>
+                            <div class="chart-title" data-it="Imprese per numero di addetti" data-en="Firms by Employee Size">Firms by Employee Size</div>
+                            <div class="chart-wrapper"><canvas id="chart-man"></canvas></div>
+                        </div>
+                        <div id="tab-tra" class="chart-section">
+                            <div class="kpi-row" id="tra-kpis"></div>
+                            <div class="chart-title" data-it="Imprese per numero di addetti" data-en="Firms by Employee Size">Firms by Employee Size</div>
+                            <div class="chart-wrapper"><canvas id="chart-tra"></canvas></div>
+                        </div>
+                        <div id="tab-ing" class="chart-section"></div>
+                        <div id="tab-infra" class="chart-section">
+                            <div style="padding:10px 4px 4px;">
+                                <button id="infra-project-btn" class="infra-project-btn" type="button"><i class="fas fa-file-alt"></i> <span data-it="Scheda Progetto" data-en="Project Sheet">Project Sheet</span></button>
+                                <div id="infra-img-wrap">
+                                    <img id="infra-img" src="" alt="" style="display:none;" onerror="infraImgError(this)" onclick="openImageLightbox(this.src,this.alt)">
+                                    <div id="infra-img-placeholder">&#128247; Image not available</div>
+                                </div>
+                                <div style="display:flex;gap:8px;margin-bottom:8px;">
+                                    <div class="kpi-box" style="flex:1;"><div class="kv" id="infra-sector">&#8211;</div><div class="kl" data-it="Settore" data-en="Sector">Sector</div></div>
+                                    <div class="kpi-box" style="flex:1;"><div class="kv" id="infra-cod">&#8211;</div><div class="kl" data-it="Codice" data-en="Code" data-it="Codice" data-en="Code">Code</div></div>
+                                    <div class="kpi-box" style="flex:1;"><div class="kv" id="infra-type-icon">&#8211;</div><div class="kl" data-it="Tipo" data-en="Type" data-it="Tipo" data-en="Type">Type</div></div>
+                                </div>
+                                <div class="infra-box"><div class="infra-box-lbl" data-it="Fase e Tempistica" data-en="Phase and Timeline" data-it="Fase e Tempistica" data-en="Phase &amp; Timeline">Phase &amp; Timeline</div><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div id="infra-fase-badge" style="font-size:11px;font-weight:600;color:#1e2a4a;">&#8211;</div><div id="infra-tempistica" style="font-size:11px;font-weight:600;color:#3a4a6a;">&#8211;</div></div></div>
+                                <div class="infra-box"><div class="infra-box-lbl" data-it="Tipologia intervento" data-en="Intervention Type" data-it="Tipologia intervento" data-en="Intervention Type">Intervention Type</div><div id="infra-tipologia" style="font-size:11px;color:#3a4a6a;font-weight:600;">&#8211;</div></div>
+                                <div class="infra-box"><div class="infra-box-lbl" data-it="Periodo" data-en="Period" data-it="Periodo" data-en="Period">Period</div><div style="display:flex;align-items:center;gap:6px;"><span id="infra-start" style="font-size:11px;color:#1e2a4a;font-weight:700;">&#8211;</span><div id="infra-timeline-bar" style="flex:1;height:5px;background:#e4e8f0;border-radius:3px;overflow:hidden;"><div id="infra-timeline-fill" style="height:100%;background:linear-gradient(90deg,#1e2a4a,#6a8acc);border-radius:3px;width:50%;"></div></div><span id="infra-end" style="font-size:11px;color:#1e2a4a;font-weight:700;">&#8211;</span></div></div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+                                    <div class="kpi-box"><div class="kv" id="infra-costo">&#8211;</div><div class="kl" data-it="Costo (&#8364;)" data-en="Cost (&#8364;)">Cost (&#8364;)</div></div>
+                                    <div class="kpi-box"><div class="kv" id="infra-risorse">&#8211;</div><div class="kl" data-it="Risorse (&#8364;)" data-en="Resources (&#8364;)">Resources (&#8364;)</div></div>
+                                    <div class="kpi-box"><div class="kv" id="infra-fabbisogno">&#8211;</div><div class="kl" data-it="Fabbisogno (%)" data-en="Gap (%)">Gap (%)</div></div>
+                                </div>
+                                <div class="infra-box"><div class="infra-box-lbl" data-it="Commissionato" data-en="Commissioned">Commissioned</div><div id="infra-commiss" style="font-size:11px;font-weight:600;color:#3a4a6a;">&#8211;</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+        <script src="data/sedi_attive_2025_con_demografia_1.js"></script>
+        <script src="data/LeSetteSorelle_2.js"></script>
+        <script src="data/LeSetteSorelle_3.js"></script>
+        <script src="data/Autostrada_4.js"></script>
+        <script src="data/Tracciati_opere_CN__strada_ferrovia_rev_5.js"></script>
+        <script src="data/Ferrovia_6.js"></script>
+        <script src="data/Tracciati_opere_CN__punti_7.js"></script>
+        <script src="data/Cuneo_0.js"></script>
+        <script>
+        /* Data arrays — declared immediately */
+        var allRoadFeatures  = json_Tracciati_opere_CN__strada_ferrovia_rev_5.features.slice(0);
+        var allPointFeatures = json_Tracciati_opere_CN__punti_7.features.slice(0);
+
+        /* LANGUAGE */
+        var currentLang = 'en';
+        var lastStrategicCount = null;
+        var lastInvariantCount = null;
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.nav-lang-btn').forEach(function(b){ b.classList.remove('active'); if(b.textContent.toLowerCase()===lang) b.classList.add('active'); });
+            document.querySelectorAll('[data-it]').forEach(function(el){ el.innerHTML = lang==='it'?el.dataset.it:el.dataset.en; });
+            document.getElementById('sidebar-title').textContent = lang==='it'?'Provincia di Cuneo – Dashboard':'Cuneo Province – Dashboard';
+            document.getElementById('sidebar-sub').textContent   = lang==='it'?'Clicca un comune per visualizzare i dati':'Click a municipality to view data';
+            localStorage.setItem('cuneo_lang', lang);
+            /* Rebuild endpoint labels in new language */
+            if (lastEndpointFeatures) showEndpoints(lastEndpointFeatures);
+            /* Refresh dynamic count labels */
+            var sc=document.getElementById('f-count');
+            if(sc&&lastStrategicCount!==null) sc.textContent=lastStrategicCount+(lang==='it'?' progett'+(lastStrategicCount!==1?'i trovati':' trovato'):' project'+(lastStrategicCount!==1?'s':'')+' found');
+            var ic=document.getElementById('fi-count');
+            if(ic&&lastInvariantCount!==null) ic.textContent=lastInvariantCount+(lang==='it'?' element'+(lastInvariantCount!==1?'i trovati':' trovato'):' element'+(lastInvariantCount!==1?'s':'')+' found');
+            /* Update select option text */
+            document.querySelectorAll('select option[data-it]').forEach(function(opt) {
+                opt.textContent = lang === 'it' ? opt.getAttribute('data-it') : opt.getAttribute('data-en');
+            });
+        }
+
+        /* OVERLAYS */
+        function openOverlay(id)  { document.getElementById(id).classList.add('open'); }
+        function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+        function closeOverlayBackdrop(e,el) { if(e.target===el) el.classList.remove('open'); }
+
+        var lbState = { scale:1, panX:0, panY:0, dragging:false, moved:false, startX:0, startY:0, startPanX:0, startPanY:0, pinchDist:0, pinchScale:1 };
+        var LB_MIN_SCALE = 1, LB_MAX_SCALE = 5;
+
+        function openImageLightbox(src, alt) {
+            if (!src) return;
+            var pic = document.getElementById('img-lightbox-pic');
+            pic.src = src;
+            pic.alt = alt || '';
+            resetLightboxZoom();
+            document.getElementById('img-lightbox').classList.add('open');
+        }
+        function closeImageLightbox() {
+            document.getElementById('img-lightbox').classList.remove('open');
+            resetLightboxZoom();
+        }
+        function resetLightboxZoom() {
+            lbState.scale = 1; lbState.panX = 0; lbState.panY = 0;
+            applyLightboxTransform();
+        }
+        function clampLightboxPan() {
+            var pic = document.getElementById('img-lightbox-pic');
+            var maxX = (pic.offsetWidth * (lbState.scale - 1)) / (2 * lbState.scale);
+            var maxY = (pic.offsetHeight * (lbState.scale - 1)) / (2 * lbState.scale);
+            lbState.panX = Math.max(-maxX, Math.min(maxX, lbState.panX));
+            lbState.panY = Math.max(-maxY, Math.min(maxY, lbState.panY));
+        }
+        function applyLightboxTransform() {
+            var pic = document.getElementById('img-lightbox-pic');
+            pic.style.transform = 'translate(' + lbState.panX + 'px,' + lbState.panY + 'px) scale(' + lbState.scale + ')';
+            pic.classList.toggle('zoomed', lbState.scale > 1);
+        }
+        function setLightboxScale(newScale) {
+            lbState.scale = Math.max(LB_MIN_SCALE, Math.min(LB_MAX_SCALE, newScale));
+            if (lbState.scale === 1) { lbState.panX = 0; lbState.panY = 0; }
+            clampLightboxPan();
+            applyLightboxTransform();
+        }
+
+        (function() {
+            var pic = document.getElementById('img-lightbox-pic');
+
+            pic.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                var delta = -e.deltaY * 0.0015;
+                setLightboxScale(lbState.scale * (1 + delta));
+            }, { passive:false });
+
+            pic.addEventListener('dblclick', function(e) {
+                setLightboxScale(lbState.scale > 1 ? 1 : 2.5);
+            });
+
+            pic.addEventListener('mousedown', function(e) {
+                if (lbState.scale <= 1) return;
+                lbState.dragging = true; lbState.moved = false;
+                lbState.startX = e.clientX; lbState.startY = e.clientY;
+                lbState.startPanX = lbState.panX; lbState.startPanY = lbState.panY;
+                pic.classList.add('dragging');
+                e.preventDefault();
+            });
+            window.addEventListener('mousemove', function(e) {
+                if (!lbState.dragging) return;
+                var dx = e.clientX - lbState.startX, dy = e.clientY - lbState.startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) lbState.moved = true;
+                lbState.panX = lbState.startPanX + dx / lbState.scale;
+                lbState.panY = lbState.startPanY + dy / lbState.scale;
+                clampLightboxPan();
+                applyLightboxTransform();
+            });
+            window.addEventListener('mouseup', function() {
+                lbState.dragging = false;
+                pic.classList.remove('dragging');
+            });
+
+            pic.addEventListener('click', function(e) {
+                if (lbState.moved) { e.stopPropagation(); lbState.moved = false; }
+            });
+
+            function touchDist(touches) {
+                var dx = touches[0].clientX - touches[1].clientX;
+                var dy = touches[0].clientY - touches[1].clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+            pic.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 2) {
+                    lbState.pinchDist = touchDist(e.touches);
+                    lbState.pinchScale = lbState.scale;
+                } else if (e.touches.length === 1 && lbState.scale > 1) {
+                    lbState.dragging = true;
+                    lbState.startX = e.touches[0].clientX; lbState.startY = e.touches[0].clientY;
+                    lbState.startPanX = lbState.panX; lbState.startPanY = lbState.panY;
+                }
+            }, { passive:true });
+            pic.addEventListener('touchmove', function(e) {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    var ratio = touchDist(e.touches) / lbState.pinchDist;
+                    setLightboxScale(lbState.pinchScale * ratio);
+                } else if (e.touches.length === 1 && lbState.dragging) {
+                    e.preventDefault();
+                    var dx = e.touches[0].clientX - lbState.startX, dy = e.touches[0].clientY - lbState.startY;
+                    lbState.panX = lbState.startPanX + dx / lbState.scale;
+                    lbState.panY = lbState.startPanY + dy / lbState.scale;
+                    clampLightboxPan();
+                    applyLightboxTransform();
+                }
+            }, { passive:false });
+            pic.addEventListener('touchend', function() { lbState.dragging = false; });
+        })();
+
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeImageLightbox(); });
+
+        /* CHARTS */
+        var chartAge=null, chartAgr=null, chartMan=null, chartTra=null;
+
+        function makeBarChart(canvasId, labels, data, titleStr) {
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type:'bar',
+                data:{ labels:labels, datasets:[{ label:titleStr, data:data,
+                    backgroundColor:labels.map(function(_,i){ return 'hsla('+(200+i*15)+',55%,'+(50+i*2)+'%,0.8)'; }),
+                    borderColor:labels.map(function(_,i){ return 'hsla('+(200+i*15)+',55%,40%,1)'; }),
+                    borderWidth:1, borderRadius:4, minBarLength:4 }] },
+                options:{ responsive:true, maintainAspectRatio:true,
+                    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#fff', borderColor:'#d0d8e8', borderWidth:1, titleColor:'#1e2a4a', bodyColor:'#4a5a7a' } },
+                    scales:{ x:{ ticks:{color:'#8a9ab8',font:{size:10},maxRotation:40}, grid:{color:'rgba(0,0,0,0.04)'} },
+                             y:{ ticks:{color:'#8a9ab8',font:{size:10}}, grid:{color:'rgba(0,0,0,0.04)'}, beginAtZero:true } } }
+            });
+        }
+
+        function fmt(v) { if(v==null||v===''||isNaN(Number(v))) return '–'; return Number(v).toLocaleString('en-US'); }
+
+        function getNumberField(props, keys, fallback) {
+            for (var i = 0; i < keys.length; i++) {
+                var value = props[keys[i]];
+                if (value !== undefined && value !== null && String(value).trim() !== '') {
+                    var n = Number(String(value).replace(/,/g, ''));
+                    if (!isNaN(n)) return n;
+                }
+            }
+            return fallback;
+        }
+
+        function getTextField(props, keys, fallback) {
+            for (var i = 0; i < keys.length; i++) {
+                var value = props[keys[i]];
+                if (value !== undefined && value !== null && String(value).trim() !== '') {
+                    return String(value);
+                }
+            }
+            return fallback;
+        }
+
+        function getPopValue(props) {
+            return getNumberField(props, ['Pop_ 2023', 'Pop_2022'], null);
+        }
+
+        function switchTab(btn, tabId) {
+            document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active');
+            document.querySelectorAll('.chart-section').forEach(function(s){s.classList.remove('active');}); document.getElementById('tab-'+tabId).classList.add('active');
+        }
+
+        /* MUNICIPALITY PANEL */
+        var selectedLayer = null;
+        var selectedLayerType = null;
+        var selectedOwnerLayer = null;
+        var defaultStyle  = { fillColor:'#b4b4b4', color:'#000000', weight:2.5, fillOpacity:0.3 };
+        var hoverStyle    = { fillColor:'#888888', color:'#000000', weight:3.0, fillOpacity:0.65 };
+        var selectedStyle = { fillColor:'#79c4b4', fillOpacity:0.9 };
+        var setteSorelleStyle = { fillColor:'#e7f4f2', color:'#4a89c7', weight:2, fillOpacity:0.7 };
+
+        function closeMuniPanel() {
+            document.getElementById('empty-state').style.display='block';
+            document.getElementById('sidebar-header').style.display='none';
+            document.getElementById('muni-panel').style.display='none';
+            document.getElementById('tab-bar').style.display='flex';
+            layer_highlight.clearLayers();
+            if(selectedLayer){
+                if(selectedLayerType==='road'){try{layer_Tracciati_opere_CN__strada_ferrovia_rev_5.resetStyle(selectedLayer);}catch(e){}}
+                else if(selectedLayerType==='point'){try{selectedLayer.setStyle({fillColor:'rgba(145,82,45,1.0)',fillOpacity:1,radius:9});}catch(e){}}
+                else{try{(selectedOwnerLayer||layer_sedi_attive_2025_con_demografia_1).resetStyle(selectedLayer);}catch(e){}}
+            }
+            selectedLayer=null; selectedLayerType=null; selectedOwnerLayer=null;
+        }
+
+        function buildKpis(containerId, items) {
+            var el=document.getElementById(containerId); el.innerHTML='';
+            items.forEach(function(item){ el.innerHTML+='<div class="kpi-box"><div class="kv">'+item.v+'</div><div class="kl">'+item.l+'</div></div>'; });
+        }
+
+        function showPanel(name, code, tab) {
+            document.getElementById('empty-state').style.display='none';
+            document.getElementById('sidebar-header').style.display='block';
+            document.getElementById('muni-panel').style.display='flex';
+            document.getElementById('tab-bar').style.display='flex';
+            document.getElementById('muni-name').textContent=name;
+            document.getElementById('muni-meta').textContent='';
+            document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+            var activeBtn=document.querySelector('.tab-btn[data-tab="'+tab+'"]'); if(activeBtn) activeBtn.classList.add('active');
+            document.querySelectorAll('.chart-section').forEach(function(s){s.classList.remove('active');});
+            document.getElementById('tab-'+tab).classList.add('active');
+        }
+
+        /* ── MAIN CLICK HANDLER ──
+           One click on any municipality opens ALL tabs:
+           Population, Agriculture, Manufacturing, Transport
+           All data comes from the single merged layer */
+        function openMuniPanel(props, layer, ownerLayer) {
+            /* Reset previously selected layer */
+            if(selectedLayer && selectedLayer!==layer){
+                if(selectedLayerType==='road'){try{layer_Tracciati_opere_CN__strada_ferrovia_rev_5.resetStyle(selectedLayer);}catch(e){}}
+                else if(selectedLayerType==='point'){try{layer_Tracciati_opere_CN__punti_7.resetStyle(selectedLayer);}catch(e){}}
+                else{try{(selectedOwnerLayer||layer_sedi_attive_2025_con_demografia_1).resetStyle(selectedLayer);}catch(e){}}
+            }
+            layer_highlight.clearLayers();
+            selectedLayer = layer;
+            selectedLayerType = 'muni';
+            selectedOwnerLayer = ownerLayer || layer_sedi_attive_2025_con_demografia_1;
+            /* Highlight directly on the layer — no addData, no polygon geometry added,
+               no SVG rect generated. Same approach as openInfraPanel. */
+            try { layer.setStyle(selectedStyle); } catch(e) {}
+
+            var name = getTextField(props, ['Nome del comune', 'Comune_nome'], '');
+            var code = getTextField(props, ['Codice del comune', 'Codice comunale'], '');
+            var pop  = getPopValue(props);
+
+            document.getElementById('muni-pop-badge').textContent = 'Pop: '+fmt(pop);
+            showPanel(name, code, 'demo');
+
+            /* Filter helper: remove label/value pairs where value === 0 */
+            function filterNonZero(labels, data) {
+                var fl=[], fd=[];
+                for(var i=0;i<data.length;i++){ if(data[i]>0){fl.push(labels[i]);fd.push(data[i]);} }
+                return {labels:fl, data:fd};
+            }
+
+            /* ── POPULATION TAB ── */
+            var ageLabels=['0-14','15-29','30-44','45-59','60-74','75+'];
+            var ageKeys=['Pop 0 a 14 anni','Pop 15 a 29 anni','Pop 30 a 44 anni','Pop 45 a 59 anni','Pop 60 a 74 anni','Pop 75 anni o più'];
+            var ageRaw=ageKeys.map(function(k){ return Number(props[k])||0; });
+            var ageFiltered=filterNonZero(ageLabels,ageRaw);
+            buildKpis('demo-kpis',[
+                {v:fmt(pop), l:currentLang==='it'?'Popolazione 2023':'Population 2023'},
+                {v:fmt(props['km²']), l:'km²'},
+                {v:fmt(props['Pop_2022']), l:'Pop. 2022'}
+            ]);
+            if(chartAge) chartAge.destroy();
+            chartAge = makeBarChart('chart-age', ageFiltered.labels, ageFiltered.data, currentLang==='it'?'Persone':'People');
+
+            /* ── AGRICULTURE TAB (prefix A_) ── */
+            var bizLabels=['0','1','2-5','6-9','10-19','20-49','50-99','100-249','250-499','500+'];
+            var agrKeys=['A_0 addetti','A_1 addetto','A_2-5 addetti','A_6-9 addetti','A_10-19 addetti','A_20-49 addetti','A_50-99 addetti','A_100-249 addetti','A_250-499 addetti','A_più di 500 addetti'];
+            var agrRaw=agrKeys.map(function(k){ return Number(props[k])||0; });
+            var agrFiltered=filterNonZero(bizLabels,agrRaw);
+            var agrTotal=props['A_Grand Totale']||'–';
+            buildKpis('agr-kpis',[
+                {v:fmt(agrTotal), l:currentLang==='it'?'Tot. Imprese':'Total Firms'},
+                {v:fmt(props['A_1 addetto']), l:currentLang==='it'?'1 add.':'1 emp.'},
+                {v:fmt(props['A_2-5 addetti']), l:currentLang==='it'?'2-5 add.':'2-5 emp.'}
+            ]);
+            if(chartAgr) chartAgr.destroy();
+            chartAgr = makeBarChart('chart-agr', agrFiltered.labels, agrFiltered.data, currentLang==='it'?'Imprese':'Firms');
+
+            /* ── MANUFACTURING TAB (prefix C_) ── */
+            var manKeys=['C_0 addetti','C_1 addetto','C_2-5 addetti','C_6-9 addetti','C_10-19 addetti','C_20-49 addetti','C_50-99 addetti','C_100-249 addetti','C_250-499 addetti','C_più di 500 addetti'];
+            var manRaw=manKeys.map(function(k){ return Number(props[k])||0; });
+            var manFiltered=filterNonZero(bizLabels,manRaw);
+            var manTotal=props['C_Grand Totale']||'–';
+            buildKpis('man-kpis',[
+                {v:fmt(manTotal), l:currentLang==='it'?'Tot. Imprese':'Total Firms'},
+                {v:fmt(props['C_1 addetto']), l:currentLang==='it'?'1 add.':'1 emp.'},
+                {v:fmt(props['C_2-5 addetti']), l:currentLang==='it'?'2-5 add.':'2-5 emp.'}
+            ]);
+            if(chartMan) chartMan.destroy();
+            chartMan = makeBarChart('chart-man', manFiltered.labels, manFiltered.data, currentLang==='it'?'Imprese':'Firms');
+
+            /* ── TRANSPORT TAB (prefix H_) ── */
+            var traKeys=['H_0 addetti','H_1 addetto','H_2-5 addetti','H_6-9 addetti','H_10-19 addetti','H_20-49 addetti','H_50-99 addetti','H_100-249 addetti','H_250-499 addetti','H_più di 500 addetti'];
+            var traRaw=traKeys.map(function(k){ return Number(props[k])||0; });
+            var traFiltered=filterNonZero(bizLabels,traRaw);
+            var traTotal=props['H_Grand Totale']||'–';
+            buildKpis('tra-kpis',[
+                {v:fmt(traTotal), l:currentLang==='it'?'Tot. Imprese':'Total Firms'},
+                {v:fmt(props['H_1 addetto']), l:currentLang==='it'?'1 add.':'1 emp.'},
+                {v:fmt(props['H_2-5 addetti']), l:currentLang==='it'?'2-5 add.':'2-5 emp.'}
+            ]);
+            if(chartTra) chartTra.destroy();
+            chartTra = makeBarChart('chart-tra', traFiltered.labels, traFiltered.data, currentLang==='it'?'Imprese':'Firms');
+
+            /* Update province stats */
+            setTimeout(function(){
+                var totalPop=0, totalAgr=0, totalMan=0, totalTra=0;
+                layer_sedi_attive_2025_con_demografia_1.eachLayer(function(l){
+                    var p=l.feature.properties;
+                    totalPop+=Number(p['Pop_ 2023']||p['Pop_2022']||0);
+                    totalAgr+=Number(p['A_Grand Totale']||0);
+                    totalMan+=Number(p['C_Grand Totale']||0);
+                    totalTra+=Number(p['H_Grand Totale']||0);
+                });
+                document.getElementById('prov-pop').textContent=(totalPop/1000).toLocaleString('en-US', {maximumFractionDigits:0})+'k';
+                document.getElementById('prov-agr').textContent=totalAgr.toLocaleString('en-US');
+                document.getElementById('prov-man').textContent=totalMan.toLocaleString('en-US');
+                document.getElementById('prov-tra').textContent=totalTra.toLocaleString('en-US');
+            },100);
+        }
+
+        /* Infrastructure panel */
+        function fmtMoney(v) {
+            if(!v||v===''||v==='0'||v==='0.00') return '–';
+            var n=parseFloat(String(v).replace(/,/g,'')); if(isNaN(n)) return v;
+            if(n>=1000000) return (n/1000000).toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1})+'M€';
+            if(n>=1000) return (n/1000).toLocaleString('en-US', {maximumFractionDigits:0})+'K€';
+            return n.toLocaleString('en-US')+'€';
+        }
+
+        function openInfraPanel(props, layer, featureType) {
+            document.getElementById('empty-state').style.display='none';
+            document.getElementById('muni-panel').style.display='flex';
+            if(selectedLayer && selectedLayer!==layer){
+                if(selectedLayerType==='road'){try{layer_Tracciati_opere_CN__strada_ferrovia_rev_5.resetStyle(selectedLayer);}catch(e){}}
+                else if(selectedLayerType==='point'){try{selectedLayer.setStyle({fillColor:'rgba(145,82,45,1.0)',fillOpacity:1,radius:9});}catch(e){}}
+                else{try{(selectedOwnerLayer||layer_sedi_attive_2025_con_demografia_1).resetStyle(selectedLayer);}catch(e){}}
+            }
+            selectedLayer=layer;
+            selectedLayerType=featureType;
+            try{ if(featureType==='road') layer.setStyle({color:'#0066cc'}); else layer.setStyle({fillColor:'#0066cc',fillOpacity:1,radius:8}); }catch(e){}
+            var pre=featureType==='road'?'Tracciati_':'Punti_Cuneo_';
+            function gp(f){ var v=props[pre+f]; if(v!==undefined&&v!==null&&v!=='') return v; return props[f]||'–'; }
+            var nome=gp('Nome'), settore=gp('Settore'), cod=gp('Cod')||gp('Codice');
+            var inizio=gp('Inizio (anno)'), fine=gp('Fine (anno)');
+            var costo=gp('Costo (€)'), risorse=gp('Risorse (€)'), fabb=gp('Fabbisogno (%)');
+            var tipo=gp('Tipologia intervento'), fase=gp('Fase'), commiss=gp('Commiss'), tempi=gp('Tempistica');
+            document.getElementById('muni-name').textContent=nome;
+            document.getElementById('muni-meta').textContent=(currentLang==='it'?'Settore: ':'Sector: ')+settore;
+            var icon=settore==='Ferrovia'?'Rail':featureType==='point'?'Tunnel':'Road';
+            document.getElementById('muni-pop-badge').textContent=icon+' Cod: '+cod;
+            document.getElementById('infra-project-btn').onclick=function(){ openProjectPdf(nome); };
+            showPanel(nome,cod,'infra');
+            document.getElementById('tab-bar').style.display='none';
+            document.getElementById('infra-sector').textContent=settore;
+            document.getElementById('infra-cod').textContent=cod;
+            document.getElementById('infra-type-icon').textContent=settore==='Ferrovia'?'Railway':featureType==='point'?'Tunnel':'Road';
+            var fb=document.getElementById('infra-fase-badge'); fb.textContent=fase; fb.style.color=fase.indexOf('esercizio')>-1?'#2a7a3a':fase.indexOf('corso')>-1?'#8a6000':'#1e2a4a';
+            var tb=document.getElementById('infra-tempistica'); tb.textContent=tempi; tb.style.color=tempi.indexOf('grave')>-1?'#c04040':tempi.indexOf('ritardo')>-1?'#c07000':tempi.indexOf('linea')>-1?'#2a7a3a':'#3a4a6a';
+            document.getElementById('infra-tipologia').textContent=tipo;
+            document.getElementById('infra-start').textContent=inizio!=='–'?inizio:'?';
+            document.getElementById('infra-end').textContent=fine!=='–'?fine:'?';
+            var pct=50; if(inizio!=='–'&&fine!=='–'){var now=new Date().getFullYear(),s=parseInt(inizio),e=parseInt(fine); if(!isNaN(s)&&!isNaN(e)&&e>s) pct=Math.min(100,Math.max(0,Math.round((now-s)/(e-s)*100)));}
+            document.getElementById('infra-timeline-fill').style.width=pct+'%';
+            document.getElementById('infra-costo').textContent=fmtMoney(costo);
+            document.getElementById('infra-risorse').textContent=fmtMoney(risorse);
+            document.getElementById('infra-fabbisogno').textContent=(fabb!=='–'&&fabb!=='0'&&fabb!=='0.00')?fabb+'%':'0%';
+            var ce=document.getElementById('infra-commiss'); ce.textContent=(commiss==='1'||commiss===1)?(currentLang==='it'?'Si':'Yes'):'No'; ce.style.color=(commiss==='1'||commiss===1)?'#2a7a3a':'#c04040';
+            /* Road image */
+            var imgBase = null;
+            if (/^[A-Z][0-9]/.test(cod)) {
+                imgBase = (cod === 'S6' && featureType === 'point') ? 'infra_S6point' : (cod === 'S6' ? 'infra_S6road' : 'infra_' + cod);
+            } else if (nome === 'A6 (A33)') {
+                imgBase = 'infra_A6';
+            } else if (nome === 'SS21') {
+                imgBase = 'infra_SS21';
+            }
+            var imgEl = document.getElementById('infra-img');
+            var imgPh = document.getElementById('infra-img-placeholder');
+            if (imgBase) {
+                imgEl.removeAttribute('data-tried-png');
+                imgEl.src = 'images/' + imgBase + '.jpg';
+                imgEl.alt = nome;
+                imgEl.style.display = 'block';
+                imgPh.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                imgPh.style.display = 'flex';
+            }
+        }
+
+        function infraImgError(el) {
+            if (!el.getAttribute('data-tried-png')) {
+                el.setAttribute('data-tried-png', '1');
+                el.src = el.src.replace(/\.jpg$/, '.png');
+            } else {
+                el.style.display = 'none';
+                document.getElementById('infra-img-placeholder').style.display = 'flex';
+            }
+        }
+        window.infraImgError = infraImgError;
+
+        /* FILTER TOGGLE — fromLlp=true when opened from left panel button */
+        function toggleFilterPanel(fromLlp) {
+            var panel = document.getElementById('filter-panel');
+            var opening = !panel.classList.contains('open');
+            var llpBtn = document.getElementById('llp-infrastrutture');
+            var rightBtn = document.getElementById('filter-toggle-btn');
+
+            if (opening) {
+                panel.classList.add('open');
+                if (llpBtn) {
+                    llpBtn.classList.add('on');
+                    llpBtn.setAttribute('data-active', '1');
+                }
+                if (!allInfraVisible) toggleAllInfra();
+                if (fromLlp) {
+                    /* Move panel into left-layer-panel so Indicatori stays visible below */
+                    panel.classList.add('llp-open');
+                    if (rightBtn) rightBtn.classList.remove('active');
+                    var llpEl = document.getElementById('left-layer-panel');
+                    var indicatoriEl = document.getElementById('llp-indicatori');
+                    llpEl.insertBefore(panel, indicatoriEl);
+                    panel.style.top = '';
+                    panel.style.left = '';
+                    panel.style.right = '';
+                    panel.style.maxHeight = '';
+                } else {
+                    /* Standard mode: floating card beside the map */
+                    panel.classList.remove('llp-open');
+                    if (rightBtn) rightBtn.classList.add('active');
+                    panel.style.top = '10px';
+                    panel.style.left = '272px';
+                    panel.style.right = 'auto';
+                    panel.style.maxHeight = 'calc(100vh - 120px)';
+                    /* Close socio panel if open */
+                    var sp=document.getElementById('socio-panel');
+                    if(sp&&sp.classList.contains('open')) toggleSocioPanel();
+                }
+            } else {
+                panel.classList.remove('open', 'llp-open');
+                if (rightBtn) rightBtn.classList.remove('active');
+                if (llpBtn) {
+                    llpBtn.classList.remove('on');
+                    llpBtn.setAttribute('data-active', '0');
+                }
+                /* Move panel back to map-container */
+                var mapCont = document.getElementById('map-container');
+                mapCont.appendChild(panel);
+                if (allInfraVisible) toggleAllInfra();
+            }
+        }
+
+        /* FILTER FUNCTIONS */
+        function updateStrategicNames() {
+            var sector = document.getElementById('f-sector').value;
+            var nameEl = document.getElementById('f-strat-name');
+            var current = nameEl.value;
+            Array.from(nameEl.options).forEach(function(opt) {
+                if (!opt.value) { opt.hidden = false; return; }
+                opt.hidden = sector && opt.dataset.sector !== sector;
+            });
+            if (nameEl.selectedOptions[0] && nameEl.selectedOptions[0].hidden) nameEl.value = '';
+        }
+
+        function matchFeature(p, prefix) {
+            var sector  = document.getElementById('f-sector').value;
+            var fase    = document.getElementById('f-fase').value;
+            var tipo    = document.getElementById('f-tipo').value;
+            var commiss = document.getElementById('f-commiss').value;
+            var stratName = document.getElementById('f-strat-name').value;
+            var settore = String(p[prefix+'Settore']              || '').trim();
+            var faseP   = String(p[prefix+'Fase']                 || '').trim();
+            var tipoP   = String(p[prefix+'Tipologia intervento'] || '').trim();
+            var commP   = String(p[prefix+'Commiss']              || '0').trim();
+            var nomeP   = String(p[prefix+'Nome']                 || '').trim();
+            if(sector    && settore !== sector)    return false;
+            if(fase      && faseP   !== fase)      return false;
+            if(tipo      && tipoP   !== tipo)      return false;
+            if(commiss   && commP   !== commiss)   return false;
+            if(stratName && nomeP   !== stratName) return false;
+            return true;
+        }
+
+        function doFilter() {
+            var sector    = document.getElementById('f-sector').value;
+            var fase      = document.getElementById('f-fase').value;
+            var tipo      = document.getElementById('f-tipo').value;
+            var commiss   = document.getElementById('f-commiss').value;
+            var stratName = document.getElementById('f-strat-name').value;
+            var hasFilter = sector||fase||tipo||commiss||stratName;
+            if (!hasFilter) {
+                if (map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) map.removeLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
+                if (map.hasLayer(layer_Tracciati_opere_CN__punti_7)) map.removeLayer(layer_Tracciati_opere_CN__punti_7);
+                document.getElementById('filter-results').style.display='none';
+                hideBanner();
+                var btn=document.getElementById('filter-toggle-btn'); if(btn) btn.classList.remove('active');
+                return;
+            }
+            var fRoads  = allRoadFeatures.filter(function(f){ return matchFeature(f.properties,'Tracciati_'); });
+            var fPoints = allPointFeatures.filter(function(f){ return matchFeature(f.properties,'Punti_Cuneo_'); });
+            var finalR = fRoads;
+            var finalP = fPoints;
+            layer_Tracciati_opere_CN__strada_ferrovia_rev_5.clearLayers();
+            layer_Tracciati_opere_CN__strada_ferrovia_rev_5.addData(finalR);
+            if (!map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) map.addLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
+            if (!map.hasLayer(layer_Tracciati_hitarea)) map.addLayer(layer_Tracciati_hitarea);
+            layer_Tracciati_opere_CN__punti_7.clearLayers();
+            layer_Tracciati_opere_CN__punti_7.addData(finalP);
+            if (!map.hasLayer(layer_Tracciati_opere_CN__punti_7)) map.addLayer(layer_Tracciati_opere_CN__punti_7);
+            layer_Tracciati_opere_CN__strada_ferrovia_rev_5.eachLayer(function(l){
+                if(!l.feature) return; var feature=l.feature;
+                l.on({ mouseover:function(e){e.target.setStyle({weight:4});}, mouseout:function(e){e.target.setStyle({weight:2.0});}, click:function(e){openInfraPanel(feature.properties,e.target,'road');L.DomEvent.stopPropagation(e);} });
+            });
+            layer_Tracciati_opere_CN__punti_7.eachLayer(function(l){
+                if(!l.feature) return; var feature=l.feature;
+                l.on({ mouseover:function(e){e.target.setStyle({radius:8});}, mouseout:function(e){e.target.setStyle({radius:6});}, click:function(e){openInfraPanel(feature.properties,e.target,'point');L.DomEvent.stopPropagation(e);} });
+            });
+            var matched = finalR.map(function(f){return{p:f.properties,ft:'road'};}).concat(finalP.map(function(f){return{p:f.properties,ft:'point'};}));
+            showEndpoints(finalR);
+            renderList(matched);
+            document.getElementById('filter-results').style.display='block';
+            document.getElementById('details-body').style.display='none';
+            document.getElementById('details-toggle-icon').style.transform='rotate(-90deg)';
+            document.getElementById('details-toggle-btn').classList.remove('active');
+            allInfraVisible=false;
+            var vBtn=document.getElementById('f-viewall-btn'); if(vBtn) vBtn.innerHTML='&#9654; View all infrastructure';
+            if(hasFilter&&(finalR.length>0||finalP.length>0)){
+                var bounds=L.latLngBounds([]);
+                layer_Tracciati_opere_CN__strada_ferrovia_rev_5.eachLayer(function(l){try{bounds.extend(l.getBounds());}catch(e){}});
+                layer_Tracciati_opere_CN__punti_7.eachLayer(function(l){try{bounds.extend(l.getLatLng());}catch(e){}});
+                if(bounds.isValid()) map.fitBounds(bounds,{padding:[40,40],maxZoom:13});
+                showBanner(matched.length);
+            } else { hideBanner(); }
+            var btn=document.getElementById('filter-toggle-btn'); if(btn) btn.classList.toggle('active',!!hasFilter);
+        }
+
+        function toggleDetailsSection() {
+            var body = document.getElementById('details-body');
+            var icon = document.getElementById('details-toggle-icon');
+            var btn  = document.getElementById('details-toggle-btn');
+            var collapsed = body.style.display === 'none';
+            body.style.display = collapsed ? 'block' : 'none';
+            icon.style.transform = collapsed ? 'rotate(0deg)' : 'rotate(-90deg)';
+            btn.classList.toggle('active', collapsed);
+        }
+
+        function doReset() {
+            document.getElementById('f-sector').value='';
+            document.getElementById('f-fase').value='';
+            document.getElementById('f-tipo').value='';
+            document.getElementById('f-commiss').value='';
+            document.getElementById('f-strat-name').value='';
+            updateStrategicNames();
+            if (map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) map.removeLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
+            if (map.hasLayer(layer_Tracciati_hitarea)) map.removeLayer(layer_Tracciati_hitarea);
+            if (map.hasLayer(layer_Tracciati_opere_CN__punti_7)) map.removeLayer(layer_Tracciati_opere_CN__punti_7);
+            hideEndpoints();
+            document.getElementById('filter-results').style.display='none';
+            document.getElementById('f-list').innerHTML='';
+            document.getElementById('f-count').textContent='';
+            allInfraVisible=false;
+            var vBtn=document.getElementById('f-viewall-btn'); if(vBtn) vBtn.innerHTML='&#9654; View all infrastructure';
+            hideBanner();
+            var btn=document.getElementById('filter-toggle-btn'); if(btn) btn.classList.remove('active');
+        }
+
+        /* INVARIANTS FILTER */
+        function updateInvariantNames() {
+            var sector = document.getElementById('fi-sector').value;
+            var nameEl = document.getElementById('fi-name');
+            var current = nameEl.value;
+            Array.prototype.forEach.call(nameEl.options, function(opt) {
+                if (!opt.dataset.type) return;
+                opt.hidden = sector && opt.dataset.type !== sector;
+            });
+            // reset name if the selected option is now hidden
+            if (nameEl.selectedOptions[0] && nameEl.selectedOptions[0].hidden) nameEl.value = '';
+        }
+
+        function doInvariantFilter() {
+            var sector  = document.getElementById('fi-sector').value;
+            var name    = document.getElementById('fi-name').value;
+            var nameOpt = document.getElementById('fi-name').selectedOptions[0];
+            var nameType = nameOpt ? nameOpt.dataset.type : '';
+
+            var showRoad = sector === 'road'    || nameType === 'road'    || (!sector && !name);
+            var showRail = sector === 'railway' || nameType === 'railway' || (!sector && !name);
+
+            // Autostrada
+            if (showRoad) {
+                var filteredAuto = json_Autostrada_4.features.filter(function(f) {
+                    if (name && nameType === 'road' && String(f.properties.es_amm_nom || '').trim() !== name) return false;
+                    return true;
+                });
+                layer_Autostrada_4.clearLayers();
+                layer_Autostrada_4.addData(filteredAuto);
+                if (!map.hasLayer(layer_Autostrada_4)) map.addLayer(layer_Autostrada_4);
+            } else {
+                if (map.hasLayer(layer_Autostrada_4)) map.removeLayer(layer_Autostrada_4);
+            }
+
+            // Ferrovia
+            if (showRail) {
+                var filteredFerr = json_Ferrovia_6.features.filter(function(f) {
+                    if (name && nameType === 'railway' && String(f.properties.name || '').trim() !== name) return false;
+                    return true;
+                });
+                layer_Ferrovia_6.clearLayers();
+                layer_Ferrovia_6.addData(filteredFerr);
+                if (!map.hasLayer(layer_Ferrovia_6)) map.addLayer(layer_Ferrovia_6);
+            } else {
+                if (map.hasLayer(layer_Ferrovia_6)) map.removeLayer(layer_Ferrovia_6);
+            }
+
+            var bounds = L.latLngBounds([]);
+            layer_Autostrada_4.eachLayer(function(l){ try{bounds.extend(l.getBounds());}catch(e){} });
+            layer_Ferrovia_6.eachLayer(function(l){ try{bounds.extend(l.getBounds());}catch(e){} });
+            if (bounds.isValid()) map.fitBounds(bounds, {padding:[40,40], maxZoom:13});
+        }
+
+        function doInvariantReset() {
+            document.getElementById('fi-sector').value = '';
+            document.getElementById('fi-name').value = '';
+            updateInvariantNames();
+            if (map.hasLayer(layer_Autostrada_4)) map.removeLayer(layer_Autostrada_4);
+            if (map.hasLayer(layer_Ferrovia_6))   map.removeLayer(layer_Ferrovia_6);
+        }
+
+        var allInvariantVisible=false;
+        function toggleAllInvariant() {
+            var eyeBtn=document.getElementById('inv-eye-btn');
+            if(!allInvariantVisible){
+                allInvariantVisible=true;
+                layer_Autostrada_4.clearLayers(); layer_Autostrada_4.addData(json_Autostrada_4);
+                if (!map.hasLayer(layer_Autostrada_4)) map.addLayer(layer_Autostrada_4);
+                layer_Ferrovia_6.clearLayers(); layer_Ferrovia_6.addData(json_Ferrovia_6);
+                if (!map.hasLayer(layer_Ferrovia_6)) map.addLayer(layer_Ferrovia_6);
+                if(eyeBtn){ eyeBtn.innerHTML='<i class="fas fa-eye"></i>'; eyeBtn.title='Hide existing infrastructure'; eyeBtn.classList.add('active'); }
+            } else {
+                allInvariantVisible=false;
+                if (map.hasLayer(layer_Autostrada_4)) map.removeLayer(layer_Autostrada_4);
+                if (map.hasLayer(layer_Ferrovia_6))   map.removeLayer(layer_Ferrovia_6);
+                if(eyeBtn){ eyeBtn.innerHTML='<i class="fas fa-eye-slash"></i>'; eyeBtn.title='View existing infrastructure'; eyeBtn.classList.remove('active'); }
+            }
+        }
+
+        function renderInvariantList(items) {
+            var listEl=document.getElementById('fi-list'), countEl=document.getElementById('fi-count');
+            if(!listEl||!countEl) return;
+            listEl.innerHTML='';
+            lastInvariantCount = items.length;
+            countEl.textContent=items.length+(currentLang==='it'?' element'+(items.length!==1?'i trovati':' trovato'):' element'+(items.length!==1?'s':'')+' found');
+            items.forEach(function(item){
+                var nome = item.ft==='auto'
+                    ? String(item.p.es_amm_nom||item.p.tp_str_nom||'–')
+                    : String(item.p.name||'–');
+                var tag  = item.ft==='auto' ? 'Autostrada' : 'Ferrovia';
+                var icon = item.ft==='auto'
+                    ? '<span class="road-icon"><span></span><span></span><span></span></span>'
+                    : '<span class="rail-icon"><span></span><span></span><span></span><span></span></span>';
+                var div=document.createElement('div'); div.className='f-item';
+                div.innerHTML='<span class="f-item-icon">'+icon+'</span>'+
+                    '<div class="f-item-content">'+
+                        '<span class="f-item-name">'+nome+'</span>'+
+                        '<span class="f-item-tag">'+tag+'</span>'+
+                    '</div>'+
+                    '<div class="f-item-actions">'+
+                        '<button class="f-action-btn" type="button" title="Zoom to feature" data-action="zoom">'+
+                            '<i class="fas fa-map-marker-alt"></i>'+
+                        '</button>'+
+                    '</div>';
+                div.querySelector('[data-action="zoom"]').addEventListener('click',(function(geom){
+                    return function(e){
+                        e.stopPropagation();
+                        try{ map.fitBounds(L.geoJSON(geom).getBounds(),{padding:[40,40],maxZoom:13}); }catch(ex){}
+                    };
+                })(item.geom));
+                listEl.appendChild(div);
+            });
+        }
+
+        var allInfraVisible=false;
+        var selectedLocationIcon = 'fas fa-map-marker-alt';
+
+        /* ── Infrastructure endpoint dots ── */
+        var layer_InfraEndpoints = null;
+        var lastEndpointFeatures = null;
+
+        function getLineEndpoints(geometry) {
+            if (geometry.type === 'LineString') {
+                var c = geometry.coordinates;
+                return [c[0], c[c.length - 1]];
+            }
+            if (geometry.type === 'MultiLineString') {
+                var lines = geometry.coordinates;
+                return [lines[0][0], lines[lines.length-1][lines[lines.length-1].length-1]];
+            }
+            return [];
+        }
+
+        function getTunnelName(coord) {
+            var threshold = 0.012; /* ~1 km tolerance */
+            var features = json_Tracciati_opere_CN__punti_7.features;
+            for (var i = 0; i < features.length; i++) {
+                var geom = features[i].geometry;
+                /* MultiPoint: coordinates is [[lon,lat],[lon,lat],...] */
+                var pts = geom.type === 'MultiPoint' ? geom.coordinates : [geom.coordinates];
+                for (var j = 0; j < pts.length; j++) {
+                    var dx = pts[j][0] - coord[0], dy = pts[j][1] - coord[1];
+                    if (Math.sqrt(dx*dx + dy*dy) < threshold) {
+                        var p = features[i].properties;
+                        return p['Punti_Cuneo_Nome'] || p['Nome'] || '';
+                    }
+                }
+            }
+            return '';
+        }
+
+        function getMunicipalityName(coord) {
+            var pt = turf.point(coord);
+            var munis = json_sedi_attive_2025_con_demografia_1.features;
+            for (var i = 0; i < munis.length; i++) {
+                try {
+                    if (turf.booleanPointInPolygon(pt, munis[i])) {
+                        var p = munis[i].properties;
+                        return p['Nome del comune'] || p['Comune_nome'] || '';
+                    }
+                } catch(e) {}
+            }
+            return '';
+        }
+
+        var _nominatimCache = {};
+        function fetchPlaceName(lat, lon, delayMs, lang, callback) {
+            var key = lat.toFixed(5) + ',' + lon.toFixed(5) + ',' + (lang || 'en');
+            if (_nominatimCache[key] !== undefined) { callback(_nominatimCache[key]); return; }
+            setTimeout(function() {
+                fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&zoom=10', {
+                    headers: { 'Accept-Language': lang || 'en' }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var a = data.address || {};
+                    var name = a.city || a.town || a.village || a.municipality || a.county || '';
+                    _nominatimCache[key] = name;
+                    callback(name);
+                })
+                .catch(function() { _nominatimCache[key] = ''; callback(''); });
+            }, delayMs);
+        }
+
+        function buildEndpointLayer(roadFeatures) {
+            var markers = [];
+            var nominatimIdx = 0;
+            roadFeatures.forEach(function(f) {
+                var props = f.properties;
+                var settore = props.Tracciati_Settore || props.Settore || '';
+                var color = settore === 'Ferrovia' ? '#000000' : '#2d8a2d';
+                getLineEndpoints(f.geometry).forEach(function(coord) {
+                    var m = L.circleMarker([coord[1], coord[0]], {
+                        radius: 6, color: '#ffffff', weight: 2,
+                        fillColor: color, fillOpacity: 1
+                    });
+                    var muniName   = getMunicipalityName(coord);
+                    var tunnelName = getTunnelName(coord);
+                    function makeTooltip(muni, tunnel) {
+                        if (tunnel && muni)  return '<span style="font-size:11px;opacity:0.7;display:block;margin-bottom:2px;">' + tunnel + '</span>' + muni;
+                        if (tunnel)          return tunnel;
+                        return muni;
+                    }
+                    if (muniName || tunnelName) {
+                        m.bindTooltip(makeTooltip(muniName, tunnelName), {sticky: true, className: 'endpoint-tooltip'});
+                    } else {
+                        /* dot is outside the province — ask Nominatim */
+                        (function(marker, c, idx, tunnel) {
+                            fetchPlaceName(c[1], c[0], idx * 800, currentLang, function(name) {
+                                var label = makeTooltip(name, tunnel);
+                                if (label) marker.bindTooltip(label, {sticky: true, className: 'endpoint-tooltip'});
+                            });
+                        })(m, coord, nominatimIdx, tunnelName);
+                        nominatimIdx++;
+                    }
+                    markers.push(m);
+                });
+            });
+            return L.layerGroup(markers);
+        }
+
+        function showEndpoints(roadFeatures) {
+            lastEndpointFeatures = roadFeatures;
+            if (layer_InfraEndpoints && map.hasLayer(layer_InfraEndpoints)) map.removeLayer(layer_InfraEndpoints);
+            layer_InfraEndpoints = buildEndpointLayer(roadFeatures);
+            map.addLayer(layer_InfraEndpoints);
+        }
+
+        function hideEndpoints() {
+            if (layer_InfraEndpoints && map.hasLayer(layer_InfraEndpoints)) map.removeLayer(layer_InfraEndpoints);
+            layer_InfraEndpoints = null;
+            lastEndpointFeatures = null;
+        }
+
+        function toggleAllInfra() {
+            var btn=document.getElementById('f-viewall-btn');
+            var eyeBtn=document.getElementById('strat-eye-btn');
+            var resultsEl=document.getElementById('filter-results');
+            if(!allInfraVisible){
+                allInfraVisible=true;
+                layer_Tracciati_opere_CN__strada_ferrovia_rev_5.clearLayers(); layer_Tracciati_opere_CN__strada_ferrovia_rev_5.addData(allRoadFeatures);
+                if (!map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) map.addLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
+                if (!map.hasLayer(layer_Tracciati_hitarea)) map.addLayer(layer_Tracciati_hitarea);
+                layer_Tracciati_opere_CN__punti_7.clearLayers(); layer_Tracciati_opere_CN__punti_7.addData(allPointFeatures);
+                if (!map.hasLayer(layer_Tracciati_opere_CN__punti_7)) map.addLayer(layer_Tracciati_opere_CN__punti_7);
+                var allItems=[];
+                allRoadFeatures.forEach(function(f){ allItems.push({p:f.properties,ft:'road'}); });
+                allPointFeatures.forEach(function(f){ allItems.push({p:f.properties,ft:'point'}); });
+                showEndpoints(allRoadFeatures);
+                renderList(allItems);
+                resultsEl.style.display='block';
+                document.getElementById('details-body').style.display='none';
+                document.getElementById('details-toggle-icon').style.transform='rotate(-90deg)';
+                document.getElementById('details-toggle-btn').classList.remove('active');
+                if(btn){ btn.innerHTML='&#9660; Hide infrastructure'; }
+                if(eyeBtn){ eyeBtn.innerHTML='<i class="fas fa-eye"></i>'; eyeBtn.title='Hide strategic infrastructure'; eyeBtn.classList.add('active'); }
+            } else {
+                allInfraVisible=false;
+                if (map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) map.removeLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
+                if (map.hasLayer(layer_Tracciati_hitarea)) map.removeLayer(layer_Tracciati_hitarea);
+                if (map.hasLayer(layer_Tracciati_opere_CN__punti_7)) map.removeLayer(layer_Tracciati_opere_CN__punti_7);
+                hideEndpoints();
+                document.getElementById('f-list').innerHTML='';
+                document.getElementById('f-count').textContent='';
+                resultsEl.style.display='none';
+                if(btn){ btn.innerHTML='&#9654; View all infrastructure'; }
+                if(eyeBtn){ eyeBtn.innerHTML='<i class="fas fa-eye-slash"></i>'; eyeBtn.title='View all strategic infrastructure'; eyeBtn.classList.remove('active'); }
+            }
+        }
+
+        function renderList(items) {
+            var listEl=document.getElementById('f-list'), countEl=document.getElementById('f-count');
+            if(!listEl||!countEl) return;
+            listEl.innerHTML='';
+            lastStrategicCount = items.length;
+            countEl.textContent=items.length+(currentLang==='it'?' progett'+(items.length!==1?'i trovati':' trovato'):' project'+(items.length!==1?'s':'')+' found');
+            items.forEach(function(item){
+                var pre=item.ft==='road'?'Tracciati_':'Punti_Cuneo_';
+                var nome=String(item.p[pre+'Nome']||item.p['Nome']||'–');
+                var settore=String(item.p[pre+'Settore']||item.p['Settore']||'');
+                var icon=settore==='Ferrovia'?'<span class="rail-icon"><span></span><span></span><span></span><span></span></span>':item.ft==='point'?'&#9968;':'<span class="road-icon"><span></span><span></span><span></span></span>';
+                var div=document.createElement('div'); div.className='f-item';
+                div.innerHTML = '<span class="f-item-icon">'+icon+'</span>' +
+                    '<div class="f-item-content">' +
+                        '<span class="f-item-name">'+nome+'</span>' +
+                        '<span class="f-item-tag">'+settore+'</span>' +
+                    '</div>' +
+                    '<div class="f-item-actions">' +
+                        '<button class="f-action-btn" type="button" title="Zoom to project" data-action="zoom">' +
+                            '<i class="'+selectedLocationIcon+'"></i>' +
+                        '</button>' +
+                        '<button class="f-action-btn" type="button" title="Open project page" data-action="page">' +
+                            '<i class="fas fa-file-alt"></i>' +
+                        '</button>' +
+                    '</div>';
+
+                div.querySelector('[data-action="zoom"]').addEventListener('click',(function(it,preIn){
+                    return function(event){
+                        event.stopPropagation();
+                        zoomToProject(it,preIn);
+                    };
+                })(item,pre));
+
+                div.querySelector('[data-action="page"]').addEventListener('click',(function(it){
+                    return function(event){
+                        event.stopPropagation();
+                        openProjectPage(it);
+                    };
+                })(item));
+
+                div.addEventListener('click',(function(it,preIn){
+                    return function(){
+                        openListItem(it,preIn);
+                    };
+                })(item,pre));
+
+                listEl.appendChild(div);
+            });
+        }
+
+        function openListItem(item, preIn) {
+            var nome = String(item.p[preIn+'Nome']||item.p['Nome']||'');
+            var lyr = item.ft==='road'?layer_Tracciati_opere_CN__strada_ferrovia_rev_5:layer_Tracciati_opere_CN__punti_7;
+            var found = null;
+            lyr.eachLayer(function(l){ if(!found&&l.feature){ var n=String(l.feature.properties[preIn+'Nome']||l.feature.properties['Nome']||''); if(n===nome) found=l; } });
+            openInfraPanel(item.p,found,item.ft);
+            if(found){ try{ if(found.getBounds) map.fitBounds(found.getBounds(),{maxZoom:13,padding:[40,40]}); else if(found.getLatLng) map.setView(found.getLatLng(),12); }catch(e){} }
+        }
+
+        function zoomToProject(item, preIn) {
+            var nome = String(item.p[preIn+'Nome']||item.p['Nome']||'');
+            var lyr = item.ft==='road'?layer_Tracciati_opere_CN__strada_ferrovia_rev_5:layer_Tracciati_opere_CN__punti_7;
+            var found = null;
+            lyr.eachLayer(function(l){ if(!found&&l.feature){ var n=String(l.feature.properties[preIn+'Nome']||l.feature.properties['Nome']||''); if(n===nome) found=l; } });
+            /* Open the infrastructure dashboard in the sidebar */
+            openInfraPanel(item.p, found, item.ft);
+            if(found){
+                try{
+                    if(found.getBounds) {
+                        map.fitBounds(found.getBounds(),{maxZoom:15,padding:[40,40]});
+                    } else if(found.getLatLng) {
+                        map.setView(found.getLatLng(),14);
+                    }
+                }catch(e){}
+                flashLayer(found);
+            }
+        }
+
+        function flashLayer(layer) {
+            if(!layer || !layer.setStyle) return;
+            var originalStyle = {};
+            if(layer.feature && layer.feature.geometry) {
+                var geomType = layer.feature.geometry.type;
+                if(geomType==='LineString' || geomType==='MultiLineString') {
+                    originalStyle = {
+                        color: layer.options.color,
+                        weight: layer.options.weight,
+                        opacity: layer.options.opacity
+                    };
+                    layer.setStyle({color:'rgba(255,255,0,1)', weight:(layer.options.weight||3) + 2, opacity:1});
+                } else {
+                    originalStyle = {
+                        fillColor: layer.options.fillColor,
+                        fillOpacity: layer.options.fillOpacity,
+                        color: layer.options.color,
+                        opacity: layer.options.opacity,
+                        radius: layer.options.radius
+                    };
+                    layer.setStyle({fillColor:'rgba(255,255,0,1)', fillOpacity:1, color:'#ffaa00', opacity:1, radius:(layer.options.radius||6) + 2});
+                }
+            }
+            setTimeout(function(){
+                if(layer && layer.setStyle) {
+                    layer.setStyle(originalStyle);
+                }
+            }, 2000);
+        }
+
+        /* Project name -> PDF filename in the pdfs/ folder.
+           Add an entry here once the matching PDF is placed in pdfs/. */
+        var pdfMap = {
+            'Variante di Demonte': 'Variante di Demonte.pdf'
+        };
+
+        function openProjectPdf(nome) {
+            var pdfFile = pdfMap[nome];
+            if (pdfFile) {
+                window.open('pdfs/' + pdfFile, '_blank');
+            } else {
+                alert(currentLang === 'it'
+                    ? 'PDF non ancora disponibile per questo progetto. Verrà aggiunto a breve.'
+                    : 'PDF not available yet for this project. It will be added soon.');
+            }
+        }
+
+        function openProjectPage(item) {
+            var nome = String(item.p['Tracciati_Nome']||item.p['Punti_Cuneo_Nome']||item.p['Nome']||'');
+            openProjectPdf(nome);
+        }
+
+        function showBanner(count) {
+            var b=document.getElementById('zoom-banner');
+            if(b){ b.textContent='Map zoomed to '+count+' result'+(count!==1?'s':'')+' — highlighted yellow'; b.classList.add('show'); setTimeout(function(){b.classList.remove('show');},4000); }
+        }
+        function hideBanner() { var b=document.getElementById('zoom-banner'); if(b) b.classList.remove('show'); }
+
+        function getInfraColor(props) {
+            var settore = props['Tracciati_Settore']||props['Settore']||'';
+            return settore==='Ferrovia' ? 'rgba(0,0,0,1.0)' : 'rgba(45,138,45,1.0)';
+        }
+
+        /* Highlight Le Sette Sorelle on map for 5 seconds */
+        function highlightSetteSorelle() {
+            if (typeof layer_LeSetteSorelle_2 === 'undefined') return;
+            /* Zoom map to Le Sette Sorelle */
+            try {
+                var bounds = layer_LeSetteSorelle_2.getBounds();
+                if (bounds.isValid()) map.fitBounds(bounds, {padding:[40,40], maxZoom:11});
+            } catch(e) {}
+            /* Flash highlight style */
+            layer_LeSetteSorelle_2.eachLayer(function(l) {
+                try { l.setStyle({ fillColor:'#ffdd00', fillOpacity:0.9, color:'#cc8800', weight:3 }); } catch(e) {}
+            });
+            /* Reset after 5 seconds */
+            setTimeout(function() {
+                layer_LeSetteSorelle_2.eachLayer(function(l) {
+                    try { layer_LeSetteSorelle_2.resetStyle(l); } catch(e) {}
+                });
+            }, 2000);
+        }
+        window.highlightSetteSorelle = highlightSetteSorelle;
+
+        /* CHOROPLETH / SOCIO-ECONOMIC PANEL */
+        var activeChoroKey = null;
+        var choroplethCfg = {
+            pop: { field:'Pop_ 2023',      fallback:'Pop_2022', breaks:[42,1611,4691,12528,31229,55844], colors:['#d1f0e3','#a1dfc6','#6fbba0','#3d9278','#1f6452'], nodata:'#f5f5f5', label:'Demografica — Pop 2023' },
+            agr: { field:'A_Grand Totale', fallback:null,        breaks:[1,42,101,194,364,602],           colors:['#f8eed8','#e1d2b0','#c7b18a','#a2815c','#725435'], nodata:'#f5f5f5', label:'Sedi_Attive_2025_A_Agricoltura' },
+            man: { field:'C_Grand Totale', fallback:null,        breaks:[0,19,55,126,245,341],             colors:['#e4edff','#bdd2ff','#8fa8ff','#5f7cff','#3853e1'], nodata:'#f5f5f5', label:'Sedi_Attive_2025_C_Manifatturiere' },
+            tra: { field:'H_Grand Totale', fallback:null,        breaks:[0,3,8,22,56,92],                  colors:['#f2f0f7','#cbc9e2','#9e9ac8','#756bb1','#54278f'], nodata:'#f5f5f5', label:'Sedi_Attive_2025_H_Trasporto' }
+        };
+        function _choroColor(v, breaks, colors, nodata) {
+            if (v===null || v===undefined || isNaN(v) || v < breaks[0]) return nodata;
+            for (var i=0; i<breaks.length-1; i++) {
+                if (v >= breaks[i] && v <= breaks[i+1]) return colors[i];
+            }
+            return colors[colors.length-1];
+        }
+        function showChoroLegend(key) {
+            var cfg = choroplethCfg[key]; if (!cfg) return;
+            var leg = document.getElementById('choro-legend');
+            var titleEl = document.getElementById('choro-legend-title');
+            var bodyEl = document.getElementById('choro-legend-body');
+            titleEl.textContent = cfg.label;
+            bodyEl.innerHTML = '';
+            var b = cfg.breaks;
+            cfg.colors.forEach(function(color, i){
+                var row = document.createElement('div');
+                row.className = 'choro-leg-row';
+                row.innerHTML = '<span class="choro-leg-swatch" style="background:' + color + ';"></span>' +
+                                '<span class="choro-leg-label">' + b[i].toLocaleString() + ' – ' + b[i+1].toLocaleString() + '</span>';
+                bodyEl.appendChild(row);
+            });
+            leg.classList.add('visible');
+        }
+        function hideChoroLegend() {
+            var leg = document.getElementById('choro-legend');
+            if (leg) leg.classList.remove('visible');
+        }
+        function applyChoroLayer(key) {
+            var cfg = choroplethCfg[key]; if (!cfg) return;
+            /* Make sure the municipality visual layer is visible on the map */
+            if (typeof layer_sedi_group !== 'undefined' && !map.hasLayer(layer_sedi_group)) {
+                map.addLayer(layer_sedi_group);
+            }
+            layer_sedi_attive_2025_con_demografia_1.options.style = function(feature){
+                var p=feature.properties;
+                var v=+(p[cfg.field]||(cfg.fallback&&p[cfg.fallback])||0);
+                return { fillColor:_choroColor(v,cfg.breaks,cfg.colors,cfg.nodata), fillOpacity:0.8, color:'#666', weight:0.4, opacity:1 };
+            };
+            layer_sedi_attive_2025_con_demografia_1.eachLayer(function(l){
+                layer_sedi_attive_2025_con_demografia_1.resetStyle(l);
+            });
+            activeChoroKey = key;
+            showChoroLegend(key);
+        }
+        function resetChoroAll() {
+            if(typeof style_sedi_attive_2025_con_demografia_1_0 !== 'undefined'){
+                layer_sedi_attive_2025_con_demografia_1.options.style = style_sedi_attive_2025_con_demografia_1_0;
+                layer_sedi_attive_2025_con_demografia_1.eachLayer(function(l){
+                    layer_sedi_attive_2025_con_demografia_1.resetStyle(l);
+                });
+            }
+            activeChoroKey = null;
+            document.querySelectorAll('.socio-chk').forEach(function(c){ c.checked=false; });
+            hideChoroLegend();
+        }
+        function toggleChoroLayer(key, checkbox) {
+            document.querySelectorAll('.socio-chk').forEach(function(c){ if(c!==checkbox) c.checked=false; });
+            if(checkbox.checked) applyChoroLayer(key); else resetChoroAll();
+        }
+        function toggleSocioPanel() {
+            var panel=document.getElementById('socio-panel');
+            var opening=!panel.classList.contains('open');
+            panel.classList.toggle('open');
+            var btn=document.getElementById('llp-indicatori');
+            if(btn) {
+                btn.classList.toggle('on', opening);
+                btn.setAttribute('data-active', opening ? '1' : '0');
+            }
+            if(opening){
+                /* Move in-flow inside left-layer-panel so both panels can coexist */
+                panel.classList.add('llp-open');
+                var llpEl=document.getElementById('left-layer-panel');
+                llpEl.appendChild(panel);
+                panel.style.top='';
+                panel.style.maxHeight='';
+            } else {
+                /* Main button OFF — deactivate all sub-layers */
+                resetChoroAll();
+                /* Move back to map-container */
+                panel.classList.remove('llp-open');
+                var mapCont=document.getElementById('map-container');
+                mapCont.appendChild(panel);
+                panel.style.top='';
+                panel.style.maxHeight='';
+            }
+        }
+        window.toggleSocioPanel=toggleSocioPanel;
+        window.toggleChoroLayer=toggleChoroLayer;
+
+        function toggleFerroviePanel() {
+            var panel = document.getElementById('ferrovie-panel');
+            var opening = !panel.classList.contains('open');
+            panel.classList.toggle('open');
+            var btn = document.getElementById('llp-ferrovie');
+            if (btn) {
+                btn.classList.toggle('on', opening);
+                btn.setAttribute('data-active', opening ? '1' : '0');
+            }
+            if (!opening) {
+                /* Main button OFF — deactivate all sub-layers */
+                if (map.hasLayer(layer_Ferrovia_6)) map.removeLayer(layer_Ferrovia_6);
+                if (map.hasLayer(airportMarker)) map.removeLayer(airportMarker);
+                var chkF = document.getElementById('ferr-chk-ferrovie');
+                var chkA = document.getElementById('ferr-chk-aeroporti');
+                if (chkF) chkF.checked = false;
+                if (chkA) chkA.checked = false;
+            }
+        }
+        window.toggleFerroviePanel = toggleFerroviePanel;
+
+        var airportIcon = L.icon({
+            iconUrl: 'images/airport.png',
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+            popupAnchor: [0, -22]
+        });
+        var airportMarker = L.marker([44.5471, 7.6232], { icon: airportIcon })
+            .bindPopup('<b>Aeroporto di Cuneo</b><br>Cuneo Levaldigi Airport');
+
+        function toggleFerrLayer(key, chk) {
+            if (key === 'ferrovie') {
+                if (chk.checked) {
+                    layer_Ferrovia_6.clearLayers();
+                    layer_Ferrovia_6.addData(json_Ferrovia_6);
+                    if (!map.hasLayer(layer_Ferrovia_6)) map.addLayer(layer_Ferrovia_6);
+                } else {
+                    if (map.hasLayer(layer_Ferrovia_6)) map.removeLayer(layer_Ferrovia_6);
+                }
+            } else if (key === 'aeroporti') {
+                if (chk.checked) {
+                    if (!map.hasLayer(airportMarker)) map.addLayer(airportMarker);
+                } else {
+                    if (map.hasLayer(airportMarker)) map.removeLayer(airportMarker);
+                }
+            }
+        }
+        window.toggleFerrLayer = toggleFerrLayer;
+
+        /* LEFT PANEL LAYER TOGGLES */
+        var llpStates = { provincia:true, comuni:false, ferrovie:false, autostrade:false, infrastrutture:false };
+        function darkenColor(hex) {
+            hex = hex.replace('#', '');
+            var r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 50);
+            var g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 50);
+            var b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 50);
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
+        }
+        function toggleLlpLayer(name) {
+            llpStates[name] = !llpStates[name];
+            var on = llpStates[name];
+            var btn = document.getElementById('llp-' + name);
+            if (btn) {
+                btn.classList.toggle('on', on);
+                btn.setAttribute('data-active', on ? '1' : '0');
+            }
+            switch(name) {
+                case 'provincia':
+                    if (on) {
+                        if (!map.hasLayer(layer_CuneoBorder)) map.addLayer(layer_CuneoBorder);
+                        // If layer has no data yet, re-trigger the dissolve
+                        var hasData = false;
+                        layer_CuneoBorder.eachLayer(function(){ hasData = true; });
+                        if (!hasData) createProvinceBorder();
+                    } else {
+                        if (map.hasLayer(layer_CuneoBorder)) map.removeLayer(layer_CuneoBorder);
+                    }
+                    break;
+                case 'comuni':
+                    if (on) { if(!map.hasLayer(layer_sedi_group)) map.addLayer(layer_sedi_group); }
+                    else { if(map.hasLayer(layer_sedi_group)) map.removeLayer(layer_sedi_group); }
+                    break;
+                case 'ferrovie':
+                    if (on) { layer_Ferrovia_6.clearLayers(); layer_Ferrovia_6.addData(json_Ferrovia_6); if(!map.hasLayer(layer_Ferrovia_6)) map.addLayer(layer_Ferrovia_6); }
+                    else { if(map.hasLayer(layer_Ferrovia_6)) map.removeLayer(layer_Ferrovia_6); }
+                    break;
+                case 'autostrade':
+                    if (on) { layer_Autostrada_4.clearLayers(); layer_Autostrada_4.addData(json_Autostrada_4); if(!map.hasLayer(layer_Autostrada_4)) map.addLayer(layer_Autostrada_4); }
+                    else { if(map.hasLayer(layer_Autostrada_4)) map.removeLayer(layer_Autostrada_4); }
+                    break;
+                case 'infrastrutture':
+                    toggleAllInfra();
+                    llpStates[name] = allInfraVisible;
+                    if (btn) btn.classList.toggle('on', allInfraVisible);
+                    break;
+            }
+        }
+        window.toggleLlpLayer = toggleLlpLayer;
+
+        function initRightPanelPills() {
+            var mappings = {
+                'Demographic': function() { toggleLlpLayer('comuni'); },
+                'Infra': function() { toggleLlpLayer('infrastrutture'); },
+                'Business': function() { toggleSocioPanel(); }
+            };
+            document.querySelectorAll('.toggle-pill').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var label = button.textContent.trim();
+                    var active = button.classList.contains('is-active');
+                    var nextState = !active;
+                    button.classList.toggle('is-active', nextState);
+                    button.setAttribute('aria-pressed', nextState ? 'true' : 'false');
+                    if (mappings[label]) mappings[label]();
+                });
+            });
+        }
+        initRightPanelPills();
+
+        window.openOverlay=openOverlay; window.closeOverlay=closeOverlay; window.closeOverlayBackdrop=closeOverlayBackdrop;
+        window.setLang=setLang; window.switchTab=switchTab; window.closeMuniPanel=closeMuniPanel;
+        window.openMuniPanel=openMuniPanel; window.openInfraPanel=openInfraPanel;
+        window.toggleFilterPanel=toggleFilterPanel; window.doFilter=doFilter; window.doReset=doReset; window.toggleAllInfra=toggleAllInfra;
+
+
+
+        </script>
+        <script>
+                var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                weight: (highlightLayer.options.weight || 3) + 1,
+              });
+            } else {
+              highlightLayer.setStyle({
+                weight: (highlightLayer.options.weight || 1) + 1,
+              });
+            }
+        }
+        /* Fixed geographic extent of the whole province — reused by the initial view and by the resize handler below */
+        var provinceBounds = [[43.82465841348229,6.342359621269103],[44.98856503365375,8.764032673102507]];
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1, zoomSnap:0.25, zoomDelta:0.25
+        }).fitBounds(provinceBounds);
+        /* Force province view on every fresh load — ignore any saved URL hash */
+        map.fitBounds(provinceBounds);
+
+        /* ── Suppress Leaflet SVG bounding-box <rect> elements ──
+           Leaflet's SVG renderer injects a <rect> into each pane's SVG when
+           rendering interactive paths. We use a MutationObserver to hide them
+           as soon as they appear, since CSS alone may be overridden by inline styles. */
+        (function suppressLeafletRects() {
+            var mapEl = document.getElementById('map');
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(m) {
+                    m.addedNodes.forEach(function(node) {
+                        if (node.nodeName === 'rect' || (node.querySelectorAll && node.querySelectorAll('rect').length)) {
+                            var rects = node.nodeName === 'rect' ? [node] : Array.prototype.slice.call(node.querySelectorAll('rect'));
+                            rects.forEach(function(r) {
+                                r.style.setProperty('display', 'none', 'important');
+                                r.style.setProperty('visibility', 'hidden', 'important');
+                                r.style.setProperty('stroke', 'none', 'important');
+                                r.style.setProperty('fill', 'none', 'important');
+                            });
+                        }
+                    });
+                });
+            });
+            observer.observe(mapEl, { childList: true, subtree: true });
+        })();
+        map.createPane('pane_highlight');
+        map.getPane('pane_highlight').style.zIndex = 499;
+        map.getPane('pane_highlight').style.pointerEvents = 'none';
+        var layer_highlight = new L.geoJSON(null, {
+            pane: 'pane_highlight',
+            interactive: false,
+            style: function() { return { fillColor:'#ffdd44', fillOpacity:0.6, color:'transparent', weight:0 }; }
+        });
+        map.addLayer(layer_highlight);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        /* zoom + measure + filter + choropleth + search added after lay.addTo(map) at topright */
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 0.7,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_sedi_attive_2025_con_demografia_1(feature, layer) {
+            /* Visual layer is non-interactive — events handled by hit layer below */
+        }
+        function style_sedi_attive_2025_con_demografia_1_0() {
+            return {
+                pane: 'pane_sedi_attive_2025_con_demografia_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 0.3,
+                fillColor: 'rgba(180,180,180,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_sedi_attive_2025_con_demografia_1');
+        map.getPane('pane_sedi_attive_2025_con_demografia_1').style.zIndex = 403;
+        map.getPane('pane_sedi_attive_2025_con_demografia_1').style['mix-blend-mode'] = 'normal';
+        var layer_sedi_attive_2025_con_demografia_1 = new L.geoJson(json_sedi_attive_2025_con_demografia_1, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_sedi_attive_2025_con_demografia_1',
+            layerName: 'layer_sedi_attive_2025_con_demografia_1',
+            pane: 'pane_sedi_attive_2025_con_demografia_1',
+            onEachFeature: pop_sedi_attive_2025_con_demografia_1,
+            style: style_sedi_attive_2025_con_demografia_1_0,
+        });
+        bounds_group.addLayer(layer_sedi_attive_2025_con_demografia_1);
+        /* Transparent hit layer for municipality clicks — interactive:true here,
+           NOT on the visual layer, so no SVG bounding rect is ever generated */
+        map.createPane('pane_sedi_hitarea');
+        map.getPane('pane_sedi_hitarea').style.zIndex = 404;
+        var layer_sedi_hitarea = new L.geoJson(json_sedi_attive_2025_con_demografia_1, {
+            interactive: true,
+            pane: 'pane_sedi_hitarea',
+            style: function() { return { fill: true, fillOpacity: 0.001, color: 'transparent', weight: 0, stroke: false }; },
+            onEachFeature: function(feature, hitLayer) {
+                hitLayer.on({
+                    mouseover: function(e) {
+                        /* Find and style the matching visual layer polygon */
+                        layer_sedi_attive_2025_con_demografia_1.eachLayer(function(vl) {
+                            if (vl.feature === feature) vl.setStyle(hoverStyle);
+                        });
+                        var name = feature.properties['Nome del comune'] || feature.properties['Comune_nome'] || '';
+                        hitLayer.bindTooltip('<div class="custom-tooltip-inner"><strong>' + name + '</strong></div>', {sticky:true, direction:'top', className:''}).openTooltip(e.latlng);
+                    },
+                    mouseout: function(e) {
+                        layer_sedi_attive_2025_con_demografia_1.eachLayer(function(vl) {
+                            if (vl.feature === feature && vl !== selectedLayer) {
+                                try { layer_sedi_attive_2025_con_demografia_1.resetStyle(vl); } catch(err) { vl.setStyle(defaultStyle); }
+                            }
+                        });
+                        hitLayer.closeTooltip();
+                        hitLayer.unbindTooltip();
+                    },
+                    click: function(e) {
+                        hitLayer.closeTooltip();
+                        hitLayer.unbindTooltip();
+                        /* Find the matching visual layer polygon to pass to openMuniPanel */
+                        var vl = null;
+                        layer_sedi_attive_2025_con_demografia_1.eachLayer(function(l) {
+                            if (l.feature === feature) vl = l;
+                        });
+                        if (vl) openMuniPanel(feature.properties, vl, layer_sedi_attive_2025_con_demografia_1);
+                        L.DomEvent.stopPropagation(e);
+                    }
+                });
+            }
+        });
+        map.createPane('pane_CuneoBorder');
+        map.getPane('pane_CuneoBorder').style.zIndex = 402;
+        map.getPane('pane_CuneoBorder').style['mix-blend-mode'] = 'normal';
+        var _borderStyle = {
+            pane: 'pane_CuneoBorder',
+            opacity: 1,
+            color: 'rgba(0,0,0,1.0)',
+            weight: 3,
+            fill: false,
+            interactive: false,
+        };
+        var layer_CuneoBorder = new L.geoJson(null, {
+            attribution: '',
+            interactive: false,
+            pane: 'pane_CuneoBorder',
+            style: function() { return _borderStyle; },
+        });
+        function pop_LeSetteSorelle_2(feature, layer) {
+            /* Visual layer is non-interactive — events handled by hit layer below */
+        }
+        function style_LeSetteSorelle_2_0() {
+            return {
+                pane: 'pane_LeSetteSorelle_2',
+                opacity: 1,
+                color: 'rgba(17,104,107,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.35,
+                fillColor: 'rgba(99,197,160,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_LeSetteSorelle_2');
+        map.getPane('pane_LeSetteSorelle_2').style.zIndex = 404;
+        map.getPane('pane_LeSetteSorelle_2').style['mix-blend-mode'] = 'normal';
+        var layer_LeSetteSorelle_2 = new L.geoJson(json_LeSetteSorelle_2, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_LeSetteSorelle_2',
+            layerName: 'layer_LeSetteSorelle_2',
+            pane: 'pane_LeSetteSorelle_2',
+            onEachFeature: pop_LeSetteSorelle_2,
+            style: style_LeSetteSorelle_2_0,
+        });
+        bounds_group.addLayer(layer_LeSetteSorelle_2);
+        /* Transparent hit layer for LeSetteSorelle clicks */
+        map.createPane('pane_LeSetteSorelle_hitarea');
+        map.getPane('pane_LeSetteSorelle_hitarea').style.zIndex = 401.5;
+        var layer_LeSetteSorelle_hitarea = new L.geoJson(json_LeSetteSorelle_2, {
+            interactive: true,
+            pane: 'pane_LeSetteSorelle_hitarea',
+            style: function() { return { fill: true, fillOpacity: 0.001, color: 'transparent', weight: 0, stroke: false }; },
+            onEachFeature: function(feature, hitLayer) {
+                hitLayer.on({
+                    mouseover: function(e) {
+                        layer_LeSetteSorelle_2.eachLayer(function(vl) {
+                            if (vl.feature === feature) vl.setStyle({ fillColor:'rgba(140,220,190,1.0)', fillOpacity:1 });
+                        });
+                        var name = feature.properties['Nome del comune'] || feature.properties['Comune_nome'] || '';
+                        hitLayer.bindTooltip('<div class="custom-tooltip-inner"><strong>' + name + '</strong></div>', {sticky:true, direction:'top'}).openTooltip(e.latlng);
+                    },
+                    mouseout: function(e) {
+                        layer_LeSetteSorelle_2.eachLayer(function(vl) {
+                            if (vl.feature === feature && vl !== selectedLayer) {
+                                try { layer_LeSetteSorelle_2.resetStyle(vl); } catch(err) {}
+                            }
+                        });
+                        hitLayer.closeTooltip();
+                        hitLayer.unbindTooltip();
+                    },
+                    click: function(e) {
+                        hitLayer.closeTooltip();
+                        hitLayer.unbindTooltip();
+                        var vl = null;
+                        layer_LeSetteSorelle_2.eachLayer(function(l) { if (l.feature === feature) vl = l; });
+                        var muniName = feature.properties['Nome del comune'] || feature.properties['Comune_nome'] || '';
+                        var fullProps = feature.properties;
+                        if (muniName && json_sedi_attive_2025_con_demografia_1) {
+                            for (var _i = 0; _i < json_sedi_attive_2025_con_demografia_1.features.length; _i++) {
+                                var _fp = json_sedi_attive_2025_con_demografia_1.features[_i].properties;
+                                if ((_fp['Nome del comune'] || _fp['Comune_nome'] || '') === muniName) {
+                                    fullProps = _fp;
+                                    break;
+                                }
+                            }
+                        }
+                        if (vl) openMuniPanel(fullProps, vl, layer_LeSetteSorelle_2);
+                        L.DomEvent.stopPropagation(e);
+                    }
+                });
+            }
+        });
+        function pop_LeSetteSorelle_3(feature, layer) {
+            layer.on({
+                mouseover: function(e) {
+                    var name = feature.properties['Nome del comune'] || feature.properties['Comune_nome'] || '';
+                    e.target.bindTooltip('<div class="custom-tooltip-inner"><strong>' + name + '</strong><br><em>Le Sette Sorelle</em></div>', {sticky:true, direction:'top'}).openTooltip(e.latlng);
+                },
+                mouseout: function(e) { e.target.closeTooltip(); },
+                click: function(e) {
+                    var muniName = feature.properties['Nome del comune'] || feature.properties['Comune_nome'] || '';
+                    var fullProps = feature.properties;
+                    if (muniName && json_sedi_attive_2025_con_demografia_1) {
+                        for (var _i = 0; _i < json_sedi_attive_2025_con_demografia_1.features.length; _i++) {
+                            var _fp = json_sedi_attive_2025_con_demografia_1.features[_i].properties;
+                            if ((_fp['Nome del comune'] || _fp['Comune_nome'] || '') === muniName) {
+                                fullProps = _fp;
+                                break;
+                            }
+                        }
+                    }
+                    openMuniPanel(fullProps, e.target);
+                    L.DomEvent.stopPropagation(e);
+                }
+            });
+        }
+        function style_LeSetteSorelle_3_0() {
+            return {
+                pane: 'pane_LeSetteSorelle_3',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(17,104,107,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,136,94,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_LeSetteSorelle_3');
+        map.getPane('pane_LeSetteSorelle_3').style.zIndex = 402;
+        map.getPane('pane_LeSetteSorelle_3').style['mix-blend-mode'] = 'normal';
+        var layer_LeSetteSorelle_3 = new L.geoJson(json_LeSetteSorelle_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_LeSetteSorelle_3',
+            layerName: 'layer_LeSetteSorelle_3',
+            pane: 'pane_LeSetteSorelle_3',
+            onEachFeature: pop_LeSetteSorelle_3,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_LeSetteSorelle_3_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_LeSetteSorelle_3);
+        var layer_LeSetteSorelle = L.layerGroup([layer_LeSetteSorelle_2, layer_LeSetteSorelle_hitarea]);
+        function pop_Autostrada_4(feature, layer) {
+            layer.on({
+                mouseover: function(e) {
+                    var name = feature.properties['es_amm_nom'] || feature.properties['tp_str_nom'] || 'Autostrada';
+                    e.target.bindTooltip('<div class="custom-tooltip-inner"><strong>' + name + '</strong></div>', {sticky:true, direction:'top'}).openTooltip(e.latlng);
+                },
+                mouseout: function(e) {
+                    e.target.closeTooltip();
+                    e.target.unbindTooltip();
+                },
+                click: function(e) { L.DomEvent.stop(e); }
+            });
+        }
+        function style_Autostrada_4_0() {
+            return {
+                pane: 'pane_Autostrada_4',
+                opacity: 1,
+                color: 'rgba(45,138,45,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+                className: 'autostrada-path',
+            }
+        }
+        map.createPane('pane_Autostrada_4');
+        map.getPane('pane_Autostrada_4').style.zIndex = 408;
+        map.getPane('pane_Autostrada_4').style['mix-blend-mode'] = 'normal';
+        var layer_Autostrada_4 = new L.geoJson(json_Autostrada_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Autostrada_4',
+            layerName: 'layer_Autostrada_4',
+            pane: 'pane_Autostrada_4',
+            onEachFeature: pop_Autostrada_4,
+            style: style_Autostrada_4_0,
+        });
+        bounds_group.addLayer(layer_Autostrada_4);
+        /* Autostrada ghost hitarea removed — clicks handled directly on layer_Autostrada_4 */
+        function pop_Tracciati_opere_CN__strada_ferrovia_rev_5(feature, layer) {
+            layer.on({
+                click: function(e) { openInfraPanel(feature.properties, e.target, 'road'); L.DomEvent.stopPropagation(e); }
+            });
+        }
+        function style_Tracciati_opere_CN__strada_ferrovia_rev_5_0(feature) {
+            var settore = feature && feature.properties ? (feature.properties['Tracciati_Settore'] || feature.properties['Settore'] || '') : '';
+            var isRail = settore === 'Ferrovia';
+            return {
+                pane: 'pane_Tracciati_opere_CN__strada_ferrovia_rev_5',
+                opacity: 1,
+                color: isRail ? 'rgba(0,0,0,1.0)' : 'rgba(45,138,45,1.0)',
+                dashArray: isRail ? '8,8' : '',
+                lineCap: isRail ? 'round' : 'square',
+                lineJoin: 'bevel',
+                weight: isRail ? 4.0 : 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Tracciati_opere_CN__strada_ferrovia_rev_5');
+        map.getPane('pane_Tracciati_opere_CN__strada_ferrovia_rev_5').style.zIndex = 405;
+        map.getPane('pane_Tracciati_opere_CN__strada_ferrovia_rev_5').style['mix-blend-mode'] = 'normal';
+        var layer_Tracciati_opere_CN__strada_ferrovia_rev_5 = new L.geoJson(json_Tracciati_opere_CN__strada_ferrovia_rev_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Tracciati_opere_CN__strada_ferrovia_rev_5',
+            layerName: 'layer_Tracciati_opere_CN__strada_ferrovia_rev_5',
+            pane: 'pane_Tracciati_opere_CN__strada_ferrovia_rev_5',
+            onEachFeature: pop_Tracciati_opere_CN__strada_ferrovia_rev_5,
+            style: style_Tracciati_opere_CN__strada_ferrovia_rev_5_0,
+        });
+        bounds_group.addLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
+        /* Transparent wide hit area for better road click sensitivity */
+        map.createPane('pane_Tracciati_hitarea');
+        map.getPane('pane_Tracciati_hitarea').style.zIndex = '405.5';
+        var layer_Tracciati_hitarea = new L.geoJson(json_Tracciati_opere_CN__strada_ferrovia_rev_5, {
+            interactive: true,
+            pane: 'pane_Tracciati_hitarea',
+            style: function() { return {weight:16, color:'rgba(0,0,0,0.001)', opacity:1, fillOpacity:0, fill:false}; },
+            onEachFeature: function(feature, ghost) {
+                ghost.on({
+                    mouseover: function() {},
+                    mouseout: function() {
+                        layer_Tracciati_opere_CN__strada_ferrovia_rev_5.eachLayer(function(rl) {
+                            if (rl.feature === feature && rl !== selectedLayer)
+                                layer_Tracciati_opere_CN__strada_ferrovia_rev_5.resetStyle(rl);
+                        });
+                    },
+                    click: function(e) {
+                        /* Only fire if the strategic layer is currently visible */
+                        if (!map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) { return; }
+                        var rl = null;
+                        layer_Tracciati_opere_CN__strada_ferrovia_rev_5.eachLayer(function(l) {
+                            if (l.feature === feature) rl = l;
+                        });
+                        if (rl) openInfraPanel(feature.properties, rl, 'road');
+                        L.DomEvent.stopPropagation(e);
+                    }
+                });
+            }
+        });
+        /* layer_Tracciati_hitarea is added/removed in sync with layer_Tracciati_opere_CN__strada_ferrovia_rev_5 */
+        /* It is NOT added to map here by default — toggleAllInfra and doFilter will manage it */
+        function pop_Ferrovia_6(feature, layer) {
+            layer.on({
+                mouseover: function(e) {
+                    var name = feature.properties['name'] || 'Ferrovia';
+                    e.target.bindTooltip('<div class="custom-tooltip-inner"><strong>' + name + '</strong></div>', {sticky:true, direction:'top'}).openTooltip(e.latlng);
+                },
+                mouseout: function(e) {
+                    e.target.closeTooltip();
+                    e.target.unbindTooltip();
+                },
+                click: function(e) { L.DomEvent.stop(e); }
+            });
+        }
+        function style_Ferrovia_6_0() {
+            return {
+                pane: 'pane_Ferrovia_6',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '12,6',
+                lineCap: 'round',
+                lineJoin: 'round',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+                className: 'ferrovia-path',
+            }
+        }
+        map.createPane('pane_Ferrovia_6');
+        map.getPane('pane_Ferrovia_6').style.zIndex = 409;
+        map.getPane('pane_Ferrovia_6').style['mix-blend-mode'] = 'normal';
+        var layer_Ferrovia_6 = new L.geoJson(json_Ferrovia_6, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Ferrovia_6',
+            layerName: 'layer_Ferrovia_6',
+            pane: 'pane_Ferrovia_6',
+            onEachFeature: pop_Ferrovia_6,
+            style: style_Ferrovia_6_0,
+        });
+        bounds_group.addLayer(layer_Ferrovia_6);
+        /* Ferrovia ghost hitarea removed — clicks handled directly on layer_Ferrovia_6 */
+        function pop_Tracciati_opere_CN__punti_7(feature, layer) {
+            layer.on({
+                mouseover: function(e) { e.target.setStyle({radius:11}); },
+                mouseout:  function(e) { if(e.target !== selectedLayer) e.target.setStyle({radius:9}); },
+                click:     function(e) { openInfraPanel(feature.properties, e.target, 'point'); L.DomEvent.stopPropagation(e); }
+            });
+        }
+        function style_Tracciati_opere_CN__punti_7_0() {
+            return {
+                pane: 'pane_Tracciati_opere_CN__punti_7',
+                radius: 9,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,82,45,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Tracciati_opere_CN__punti_7');
+        map.getPane('pane_Tracciati_opere_CN__punti_7').style.zIndex = 407;
+        map.getPane('pane_Tracciati_opere_CN__punti_7').style['mix-blend-mode'] = 'normal';
+        var layer_Tracciati_opere_CN__punti_7 = new L.geoJson(json_Tracciati_opere_CN__punti_7, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Tracciati_opere_CN__punti_7',
+            layerName: 'layer_Tracciati_opere_CN__punti_7',
+            pane: 'pane_Tracciati_opere_CN__punti_7',
+            onEachFeature: pop_Tracciati_opere_CN__punti_7,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_Tracciati_opere_CN__punti_7_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Tracciati_opere_CN__punti_7);
+        const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
+        "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
+        var layer_sedi_group = L.layerGroup([layer_sedi_attive_2025_con_demografia_1, layer_sedi_hitarea]);
+        var overlaysTree = [
+            {label: '&#9633; <span data-it="Provincia di Cuneo" data-en="Cuneo Province">Provincia di Cuneo</span>', layer: layer_CuneoBorder},
+            {label: '<svg width="20" height="14" style="vertical-align:middle;margin-right:4px;"><rect x="1" y="1" width="18" height="12" fill="rgba(180,180,180,0.3)" stroke="#000000" stroke-width="1.5" rx="1"/></svg><span data-it="Comuni di Cuneo" data-en="Cuneo Municipalities">Comuni di Cuneo</span>', layer: layer_sedi_group},]
+
+        /* ── Map controls removed from UI ── */
+        if (map.zoomControl) map.zoomControl.remove();
+        var x = null;
+        var marker = null;
+        var z = null;
+
+        map.on('click', function(){ closeMuniPanel(); });
+        setTimeout(function(){map.invalidateSize();},100);
+        /* Keep the map correctly sized/fitted whenever the available screen space changes
+           (window resize, laptop vs external monitor, browser zoom, DPI/scaling changes).
+           Only re-fit to the full province when no municipality is currently open, so an
+           active selection isn't reset just because the window was resized. */
+        var resizeRefitTimer;
+        window.addEventListener('resize', function(){
+            clearTimeout(resizeRefitTimer);
+            resizeRefitTimer = setTimeout(function(){
+                map.invalidateSize();
+                if(!selectedLayer){ map.fitBounds(provinceBounds, {padding:[40,40]}); }
+            }, 150);
+        });
+        setBounds();
+        setTimeout(function(){
+            var totalPop=0,totalAgr=0,totalMan=0,totalTra=0;
+            layer_sedi_attive_2025_con_demografia_1.eachLayer(function(l){
+                var p=l.feature.properties;
+                totalPop+=Number(p['Pop_ 2023']||p['Pop_2022']||0);
+                totalAgr+=Number(p['A_Grand Totale']||0);
+                totalMan+=Number(p['C_Grand Totale']||0);
+                totalTra+=Number(p['H_Grand Totale']||0);
+            });
+            document.getElementById('prov-pop').textContent=(totalPop/1000).toLocaleString('en-US', {maximumFractionDigits:0})+'k';
+            document.getElementById('prov-agr').textContent=totalAgr.toLocaleString('en-US');
+            document.getElementById('prov-man').textContent=totalMan.toLocaleString('en-US');
+            document.getElementById('prov-tra').textContent=totalTra.toLocaleString('en-US');
+        },800);
+        /* Load province border directly from pre-built file */
+        layer_CuneoBorder.addData(json_Cuneo_0);
+        setTimeout(function() {
+            if (llpStates['provincia']) {
+                if (map.hasLayer(layer_CuneoBorder)) map.removeLayer(layer_CuneoBorder);
+                map.addLayer(layer_CuneoBorder);
+            }
+        }, 300);
+        map.on("layerremove", function(){});
+        map.on('click', function() { closeMuniPanel(); });
+        
+        /* PROVINCIA border is added to map by dissolve operation once data loads */
+        /* No additional initialization needed here */
+
+        </script>
+    </body>
+</html>
