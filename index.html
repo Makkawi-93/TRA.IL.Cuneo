@@ -1352,9 +1352,7 @@
             var stratName = document.getElementById('f-strat-name').value;
             var hasFilter = sector||fase||tipo||commiss||stratName;
             if (!hasFilter) {
-                if (map.hasLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5)) map.removeLayer(layer_Tracciati_opere_CN__strada_ferrovia_rev_5);
-                if (map.hasLayer(layer_Tracciati_opere_CN__punti_7)) map.removeLayer(layer_Tracciati_opere_CN__punti_7);
-                document.getElementById('filter-results').style.display='none';
+                if (!allInfraVisible) toggleAllInfra();
                 hideBanner();
                 var btn=document.getElementById('filter-toggle-btn'); if(btn) btn.classList.remove('active');
                 return;
